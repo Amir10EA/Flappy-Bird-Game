@@ -1,0 +1,20 @@
+#ifndef BOOK.H
+#define BOOK.H
+
+#include <iostream>
+#include <string>
+
+namespace books{
+ class Book{
+ public:
+ Book(std::string t, int i);
+ std::string getTitle() const;
+ int getISBN() const;
+ private:
+ std::string title;
+ int isbn;
+ };
+
+ void showBook(Book* book);
+}
+#endif

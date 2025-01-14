@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Win64",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/**",
+                "D:/prog/msys64/ucrt64/include/SDL2",
+                "D:/prog/msys64/ucrt64/include",
+                "D:/prog/msys64/ucrt64/include/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "D:/prog/msys64/ucrt64/bin/g++.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-gcc-x64"
+        }
+    ],
+    "version": 4
+}
