@@ -16,11 +16,11 @@ void AnimatedSprite::update(float deltaTime) {
         if (frameTimer >= frameTime) {
             frameTimer = 0;
             currentFrame++;
-            if (currentFrame >= frames.size()) {
+            if (currentFrame >= static_cast<int>(frames.size())) {
                 if (looping) {
                     currentFrame = 0;
                 } else {
-                    currentFrame = frames.size() - 1;
+                    currentFrame = static_cast<int>(frames.size()) - 1;
                 }
             }
         }

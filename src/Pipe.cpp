@@ -24,30 +24,30 @@ void Pipe::render(SDL_Renderer* ren) {
 void Pipe::update(float deltaTime) {
     rect.x -= static_cast<int>(scrollSpeed);
     
+    // When pipe goes off screen, reset it to a position after the last pipe
     if (rect.x + rect.w < 0) {
-        reset(WINDOW_WIDTH);
+        reset(rect.x + (3 * PIPE_SPACING)); // Reset 3 pipe-spacings ahead
     }
 }
 
 void Pipe::reset(int x) {
     rect.x = x;
     
-    // Adjusted gap positioning with guaranteed minimum space
-    int minGap = BIRD_HEIGHT * 3; // Minimum gap is 3 times bird height
-    int maxGap = PIPE_GAP;        // Maximum gap defined in Constants.h
+    // Calculate gap size based on bird height
+    int gapSize = PIPE_GAP;
     int minDistance = BIRD_HEIGHT * 2; // Minimum distance from screen edges
     
     // Calculate available space
-    int availableSpace = WINDOW_HEIGHT - maxGap - (2 * minDistance);
+    int availableSpace = WINDOW_HEIGHT - gapSize - (2 * minDistance);
     
-    // Generate random position for gap ensuring minimum space
+    // Generate random position for gap
     int gapStart = minDistance + (rand() % (availableSpace / 2));
     
     if (isTopPipe) {
         rect.h = gapStart;
         rect.y = 0;
     } else {
-        rect.y = gapStart + maxGap;
+        rect.y = gapStart + gapSize;
         rect.h = WINDOW_HEIGHT - rect.y;
     }
 }

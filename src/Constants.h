@@ -9,6 +9,7 @@
 #define BIRD_HEIGHT 50
 #define PIPE_WIDTH 70
 #define PIPE_GAP 180  
+#define PIPE_SPACING (WINDOW_WIDTH * 0.4f)  
 #define INITIAL_SCROLL_SPEED 3.0f
 #define FLAP_FORCE -400.0f 
 

@@ -27,10 +27,12 @@ Bird::Bird(SDL_Renderer* ren, const std::string& path, int x, int y)
     }
     
     setFrameTime(0.1f);
-    setGravityScale(0.7f);
+    setGravityScale(1.2f);  // Increased gravity scale
     setElasticity(0.0f);
     velocityY = 0;
+    collisionType = CollisionType::PIXEL;  // Enable pixel-perfect collision
 }
+
 
 Bird::~Bird() {
     if (flapSound) Mix_FreeChunk(flapSound);
@@ -42,23 +44,27 @@ void Bird::update(float deltaTime) {
     
     AnimatedSprite::update(deltaTime);
     
-    // Add constraints to keep bird in view
+    // Add constraints to keep bird in view and check floor collision
     if (rect.y < 0) {
         rect.y = 0;
         velocityY = 0;
     }
-    if (rect.y > WINDOW_HEIGHT - rect.h) {
+    if (rect.y + rect.h > WINDOW_HEIGHT) {
         rect.y = WINDOW_HEIGHT - rect.h;
         velocityY = 0;
-        isDead = true;
+        die(); // Call die instead of setting isDead directly
     }
 }
 
-void Bird::handleCollision(Sprite* other) {
+void Bird::die() {
     if (!isDead) {
         isDead = true;
         if (hitSound) Mix_PlayChannel(-1, hitSound, 0);
     }
+}
+
+void Bird::handleCollision(Sprite* other) {
+    die();
 }
 
 void Bird::flap() {

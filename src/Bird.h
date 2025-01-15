@@ -21,6 +21,11 @@ public:
     void handleCollision(Sprite* other) override;
     void flap();
     bool isDying() const { return isDead; }
+    void resetState() {
+        isDead = false;
+        velocityY = 0;
+    }
+    void die();
 };
 
 #endif

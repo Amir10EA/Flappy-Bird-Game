@@ -5,6 +5,7 @@
 #include <memory>
 #include "Bird.h"
 #include "Pipe.h"
+#include "GameOverScreen.h"
 #include <SDL2/SDL_ttf.h>
 
 class GameLevel {
@@ -17,10 +18,13 @@ private:
     float difficulty;
     TTF_Font* font;
     SDL_Texture* scoreTexture;
+    std::unique_ptr<GameOverScreen> gameOverScreen;
+    bool isGameOver;
+    SDL_Renderer* renderer;
     
 public:
     GameLevel(SDL_Renderer* ren);
-    ~GameLevel();
+    ~GameLevel();  // Make sure this line is here
     
     void update(float deltaTime);
     void render(SDL_Renderer* ren);
