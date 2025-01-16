@@ -12,12 +12,17 @@ private:
     bool isDead;
     Mix_Chunk* flapSound;
     Mix_Chunk* hitSound;
+    float rotation;        // Current rotation angle
+    float targetRotation; // Target rotation angle
+    float rotationSpeed;     // Speed of upward rotation
+    float downwardRotationSpeed;
     
 public:
     Bird(SDL_Renderer* ren, const std::string& path, int x, int y);
     ~Bird();
     
     void update(float deltaTime) override;
+    void render(SDL_Renderer* ren) override;  // Add this line
     void handleCollision(Sprite* other) override;
     void flap();
     bool isDying() const { return isDead; }

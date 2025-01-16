@@ -18,13 +18,13 @@ private:
     float spawnTimer;
     float difficulty;
     int currentLevel;           // Track current level
-    float levelUpThreshold;     // Points needed for level up
+    bool isGameOver;
     TTF_Font* font;
     SDL_Texture* scoreTexture;
-    SDL_Texture* levelTexture;  // Texture for level display
+    SDL_Texture* levelTexture;  // New texture for level display
     std::unique_ptr<GameOverScreen> gameOverScreen;
-    bool isGameOver;
-    SDL_Renderer* renderer;  // Points needed for level up
+    float levelUpThreshold;     // Points needed for level up
+    SDL_Renderer* renderer;
     
 public:
     GameLevel(SDL_Renderer* ren);
