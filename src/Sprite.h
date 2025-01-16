@@ -23,12 +23,18 @@ protected:
     CollisionType collisionType;
     SDL_Surface* surface; // For pixel-perfect collision
 
-public:
+    // Protected constructor to prevent direct instantiation of base class
     Sprite(SDL_Renderer* ren, const std::string& path, int x, int y, int w, int h);
+
+public:
+    // Delete copy constructor and assignment operator to prevent value semantics
+    Sprite(const Sprite&) = delete;
+    Sprite& operator=(const Sprite&) = delete;
+    
     virtual ~Sprite();
     
     virtual void update(float deltaTime) = 0;
-    virtual void render(SDL_Renderer* ren); // Make render virtual
+    virtual void render(SDL_Renderer* ren);
     virtual void handleCollision(Sprite* other) {}
     
     bool checkCollision(Sprite* other);
@@ -40,4 +46,4 @@ public:
     void setPosition(int x, int y) { rect.x = x; rect.y = y; }
 };
 
-#endif // SPRITE_H
+#endif
