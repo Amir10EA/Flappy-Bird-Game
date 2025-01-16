@@ -5,7 +5,10 @@ GameLevel::GameLevel(SDL_Renderer* ren)
     : score(0),
       spawnTimer(0),
       difficulty(1.0f),
-      isGameOver(false) {  // Add this line
+      isGameOver(false),
+      currentLevel(1),
+      levelUpThreshold(10),
+      renderer(ren) {
     
     // Initialize bird
     bird = new Bird(ren, "resources/images/bird.png", WINDOW_WIDTH/4, WINDOW_HEIGHT/2);
@@ -25,9 +28,14 @@ GameLevel::GameLevel(SDL_Renderer* ren)
     // Initialize font
     font = TTF_OpenFont("resources/fonts/Arial.ttf", 36);
     scoreTexture = nullptr;
+    levelTexture = nullptr;
     
     // Initialize game over screen
     gameOverScreen = std::make_unique<GameOverScreen>(ren, font);
+    
+    // Initial texture updates
+    updateScoreTexture(renderer);
+    updateLevelTexture(renderer);
 }
 
 GameLevel::~GameLevel() {
@@ -56,22 +64,30 @@ void GameLevel::update(float deltaTime) {
             }
         }
         
-        // Update score when passing pipes
+        // Update score and level when passing pipes
         for (size_t i = 0; i < pipes.size(); i += 2) {
             if (pipes[i]->getRect().x + PIPE_WIDTH < bird->getRect().x && 
                 pipes[i]->getRect().x + PIPE_WIDTH > bird->getRect().x - 5) {
                 score++;
-                updateScoreTexture(renderer); // Update score display immediately
-                difficulty += 0.1f;
+                updateScoreTexture(renderer);
                 
-                // Update pipe scroll speeds
-                for (auto pipe : pipes) {
-                    pipe->setScrollSpeed(INITIAL_SCROLL_SPEED * difficulty);
+                // Check for level up
+                int newLevel = (score / static_cast<int>(levelUpThreshold)) + 1;
+                if (newLevel != currentLevel) {
+                    currentLevel = newLevel;
+                    difficulty = 1.0f + (currentLevel - 1) * 0.2f;
+                    updateLevelTexture(renderer);
+                    
+                    // Update pipe scroll speeds
+                    for (auto pipe : pipes) {
+                        pipe->setScrollSpeed(INITIAL_SCROLL_SPEED * difficulty);
+                    }
                 }
             }
         }
     }
 }
+
 
 void GameLevel::render(SDL_Renderer* ren) {
     // Render all sprites
@@ -79,44 +95,61 @@ void GameLevel::render(SDL_Renderer* ren) {
         sprite->render(ren);
     }
     
-    // Render score at top of screen with a nice background and animation
+    // Render score at top center
     if (scoreTexture) {
-        // Create a semi-transparent dark background panel
         SDL_Rect panelRect = {
-            (WINDOW_WIDTH - 200) / 2,  // Center horizontally
-            20,                        // 20 pixels from top
-            200,                       // Fixed width
-            60                         // Fixed height
+            (WINDOW_WIDTH - 200) / 2,
+            20,
+            200,
+            60
         };
         
-        // Render panel background with rounded corners effect
+        // Draw panel background
         SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
         SDL_SetRenderDrawColor(ren, 0, 0, 0, 180);
         SDL_RenderFillRect(ren, &panelRect);
         
-        // Add highlights to make it look more 3D
+        // Add highlights
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 30);
         SDL_Rect highlightRect = {panelRect.x, panelRect.y, panelRect.w, 2};
         SDL_RenderFillRect(ren, &highlightRect);
         
-        // Calculate score position for smooth animation
+        // Draw score
         SDL_Rect scoreRect = {
-            panelRect.x + (panelRect.w - 100) / 2,  // Center in panel
-            panelRect.y + (panelRect.h - 40) / 2,   // Center vertically
-            100,                                     // Width
-            40                                       // Height
+            panelRect.x + (panelRect.w - 100) / 2,
+            panelRect.y + (panelRect.h - 40) / 2,
+            100,
+            40
+        };
+        SDL_RenderCopy(ren, scoreTexture, nullptr, &scoreRect);
+    }
+    
+    // Render level indicator at top-left
+    if (levelTexture) {
+        SDL_Rect levelPanelRect = {
+            20,
+            20,
+            150,
+            50
         };
         
-        // Add a subtle bounce animation when score changes
-        static int lastScore = score;
-        if (lastScore != score) {
-            static float bounceOffset = 0;
-            bounceOffset = 5.0f;  // Start bounce
-            lastScore = score;
-        }
+        // Draw panel background with gradient effect
+        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(ren, 0, 0, 0, 180);
+        SDL_RenderFillRect(ren, &levelPanelRect);
         
-        // Render the score
-        SDL_RenderCopy(ren, scoreTexture, nullptr, &scoreRect);
+        // Add golden border
+        SDL_SetRenderDrawColor(ren, 255, 215, 0, 255);
+        SDL_RenderDrawRect(ren, &levelPanelRect);
+        
+        // Draw level text
+        SDL_Rect levelTextRect = {
+            levelPanelRect.x + 10,
+            levelPanelRect.y + 10,
+            130,
+            30
+        };
+        SDL_RenderCopy(ren, levelTexture, nullptr, &levelTextRect);
     }
     
     // Render game over screen if game is over
@@ -142,6 +175,7 @@ void GameLevel::handleInput(const SDL_Event& event) {
 
 void GameLevel::reset() {
     score = 0;
+    currentLevel = 1;
     difficulty = 1.0f;
     
     // Reset bird position and state
@@ -158,19 +192,51 @@ void GameLevel::reset() {
         pipes[i+1]->setScrollSpeed(INITIAL_SCROLL_SPEED);
     }
     
-    // Update score display
+    // Update displays
     updateScoreTexture(renderer);
+    updateLevelTexture(renderer);
 }
 
 void GameLevel::updateScoreTexture(SDL_Renderer* ren) {
+    // Clean up existing texture if it exists
     if (scoreTexture) {
         SDL_DestroyTexture(scoreTexture);
+        scoreTexture = nullptr;
+    }
+
+    // Create score text with current score
+    SDL_Color textColor = {255, 255, 255, 255}; // White color
+    std::string scoreText = "Score: " + std::to_string(score);
+    
+    // Create surface from text
+    SDL_Surface* surface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
+    if (!surface) {
+        printf("TTF_RenderText_Solid Error: %s\n", TTF_GetError());
+        return;
     }
     
-    SDL_Color color = {255, 255, 255, 255};
-    SDL_Surface* surface = TTF_RenderText_Solid(font, std::to_string(score).c_str(), color);
+    // Create texture from surface
+    scoreTexture = SDL_CreateTextureFromSurface(ren, surface);
+    if (!scoreTexture) {
+        printf("SDL_CreateTextureFromSurface Error: %s\n", SDL_GetError());
+        SDL_FreeSurface(surface);
+        return;
+    }
+    
+    // Clean up surface
+    SDL_FreeSurface(surface);
+}
+
+void GameLevel::updateLevelTexture(SDL_Renderer* ren) {
+    if (levelTexture) {
+        SDL_DestroyTexture(levelTexture);
+    }
+    
+    SDL_Color color = {255, 215, 0, 255}; // Gold color
+    std::string levelText = "Level " + std::to_string(currentLevel);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, levelText.c_str(), color);
     if (surface) {
-        scoreTexture = SDL_CreateTextureFromSurface(ren, surface);
+        levelTexture = SDL_CreateTextureFromSurface(ren, surface);
         SDL_FreeSurface(surface);
     }
 }

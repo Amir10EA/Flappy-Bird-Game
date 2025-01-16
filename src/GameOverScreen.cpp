@@ -29,34 +29,69 @@ void GameOverScreen::update(int score) {
 }
 
 void GameOverScreen::render(SDL_Renderer* ren) {
-    // Semi-transparent background
+    // Fade background
     SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 128);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 200);
     SDL_Rect fullscreen = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
     SDL_RenderFillRect(ren, &fullscreen);
 
-    SDL_Color textColor = {255, 255, 255, 255};
+    // Create main panel
+    SDL_Rect panel = {
+        WINDOW_WIDTH/2 - 200,
+        WINDOW_HEIGHT/2 - 150,
+        400,
+        300
+    };
     
-    // Render "Game Over" text
-    renderText(ren, "Game Over!", gameOverRect, textColor);
+    // Draw panel with gradient effect
+    SDL_SetRenderDrawColor(ren, 45, 45, 48, 255);
+    SDL_RenderFillRect(ren, &panel);
     
-    // Render current score
-    std::string scoreText = "Score: " + std::to_string(currentScore);
-    renderText(ren, scoreText, scoreRect, textColor);
+    // Add golden border
+    SDL_SetRenderDrawColor(ren, 255, 215, 0, 255);
+    SDL_RenderDrawRect(ren, &panel);
+
+    // Define colors
+    SDL_Color titleColor = {255, 215, 0, 255};  // Gold
+    SDL_Color textColor = {255, 255, 255, 255}; // White
+    SDL_Color highlightColor = {0, 255, 255, 255}; // Cyan
+
+    // Render "Game Over!" with shadow
+    SDL_Rect shadowRect = gameOverRect;
+    shadowRect.x += 2;
+    shadowRect.y += 2;
+    SDL_Color shadowColor = {0, 0, 0, 255};
+    renderText(ren, "Game Over!", shadowRect, shadowColor);
+    renderText(ren, "Game Over!", gameOverRect, titleColor);
     
-    // Render best score
-    std::string bestText = "Best: " + std::to_string(bestScore);
-    renderText(ren, bestText, bestScoreRect, textColor);
+    // Calculate and render level reached
+    int levelReached = (currentScore / 10) + 1;
     
-    // Draw restart button with green background
+    // Render scores and level
+    std::string scoreText = "Final Score: " + std::to_string(currentScore);
+    std::string levelText = "Level Reached: " + std::to_string(levelReached);
+    std::string bestText = "Best Score: " + std::to_string(bestScore);
+    
+    renderText(ren, scoreText, scoreRect, highlightColor);
+    renderText(ren, levelText, levelRect, textColor);
+    renderText(ren, bestText, bestScoreRect, highlightColor);
+    
+    // Animate restart button
+    buttonPulse += 0.05f;
+    float scale = 1.0f + 0.05f * sin(buttonPulse);
+    
+    SDL_Rect animatedButton = buttonRect;
+    animatedButton.w = static_cast<int>(buttonRect.w * scale);
+    animatedButton.h = static_cast<int>(buttonRect.h * scale);
+    animatedButton.x = WINDOW_WIDTH/2 - animatedButton.w/2;
+    
+    // Draw button with gradient
     SDL_SetRenderDrawColor(ren, 76, 175, 80, 255);
-    SDL_RenderFillRect(ren, &buttonRect);
+    SDL_RenderFillRect(ren, &animatedButton);
     
-    // Render "Restart" text on button
+    // Render "Restart" text
     SDL_Color buttonTextColor = {255, 255, 255, 255};
-    SDL_Rect restartTextRect = buttonRect;
-    restartTextRect.y += 5; // Adjust text position within button
-    renderText(ren, "Restart", restartTextRect, buttonTextColor);
+    renderText(ren, "Restart", animatedButton, buttonTextColor);
 }
 
 void GameOverScreen::renderText(SDL_Renderer* ren, const std::string& text, SDL_Rect& rect, SDL_Color& color) {

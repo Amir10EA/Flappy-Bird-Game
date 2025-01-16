@@ -14,11 +14,13 @@ private:
     SDL_Texture* restartTexture;
     SDL_Rect gameOverRect;
     SDL_Rect scoreRect;
+    SDL_Rect levelRect;      // New rect for level display
     SDL_Rect bestScoreRect;
     SDL_Rect buttonRect;
     int currentScore;
     int bestScore;
-
+    float buttonPulse;       // For button animation
+    
 public:
     GameOverScreen(SDL_Renderer* ren, TTF_Font* gameFont);
     ~GameOverScreen();
@@ -26,9 +28,9 @@ public:
     void update(int score);
     void render(SDL_Renderer* ren);
     bool isRestartButtonClicked(int x, int y) const;
-
+    
 private:
     void renderText(SDL_Renderer* ren, const std::string& text, SDL_Rect& rect, SDL_Color& color);
+    void renderPanel(SDL_Renderer* ren);
 };
-
 #endif
