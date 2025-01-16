@@ -11,8 +11,8 @@ T clamp(T value, T min, T max) {
     return std::min(std::max(value, min), max);
 }
 
-Bird::Bird(SDL_Renderer* ren, const std::string& path, int x, int y)
-    : AnimatedSprite(ren, path, x, y, BIRD_WIDTH, BIRD_HEIGHT),
+Bird::Bird(SDL_Renderer* ren, int x, int y)
+    : AnimatedSprite(ren, "resources/images/bird-wing-up.png", x, y, BIRD_WIDTH, BIRD_HEIGHT),
       flapForce(FLAP_FORCE),
       isDead(false),
       flapSound(nullptr),
@@ -20,20 +20,37 @@ Bird::Bird(SDL_Renderer* ren, const std::string& path, int x, int y)
       rotation(0),
       targetRotation(0),
       rotationSpeed(300.0f),
-      downwardRotationSpeed(120.0f) { 
+      downwardRotationSpeed(100.0f) {  // Slightly reduced from 120.0f
     
     // Load sounds
     flapSound = Mix_LoadWAV("resources/sounds/flap.wav");
     hitSound = Mix_LoadWAV("resources/sounds/hit.wav");
     
-    // Set up animation frames
-    for (int i = 0; i < 3; ++i) {
-        SDL_Rect frame = {i * BIRD_WIDTH, 0, BIRD_WIDTH, BIRD_HEIGHT};
-        addFrame(frame);
+    // Load additional frame textures
+    SDL_Surface* midwaySurface = IMG_Load("resources/images/bird-wing-midway.png");
+    SDL_Surface* downSurface = IMG_Load("resources/images/bird-wing-down.png");
+    
+    if (midwaySurface && downSurface) {
+        SDL_Texture* midwayTexture = SDL_CreateTextureFromSurface(ren, midwaySurface);
+        SDL_Texture* downTexture = SDL_CreateTextureFromSurface(ren, downSurface);
+        
+        frameTextures.push_back(texture);             // Wing up
+        frameTextures.push_back(midwayTexture);       // Wing midway
+        frameTextures.push_back(downTexture);         // Wing down
+        frameTextures.push_back(midwayTexture);       // Wing midway again
+        
+        SDL_FreeSurface(midwaySurface);
+        SDL_FreeSurface(downSurface);
+        
+        SDL_Rect frameRect = {0, 0, BIRD_WIDTH, BIRD_HEIGHT};
+        for (int i = 0; i < 4; i++) {
+            addFrame(frameRect);
+        }
     }
     
     setFrameTime(0.1f);
-    setGravityScale(1.2f);
+    setLooping(true);
+    setGravityScale(1.0f);    // Kept at 1.0f since we adjusted base gravity
     setElasticity(0.0f);
     velocityY = 0;
     collisionType = CollisionType::PIXEL;
@@ -42,12 +59,23 @@ Bird::Bird(SDL_Renderer* ren, const std::string& path, int x, int y)
 Bird::~Bird() {
     if (flapSound) Mix_FreeChunk(flapSound);
     if (hitSound) Mix_FreeChunk(hitSound);
+    
+    // Free all frame textures except the first one (handled by base class)
+    for (size_t i = 1; i < frameTextures.size(); ++i) {
+        if (frameTextures[i]) {
+            SDL_DestroyTexture(frameTextures[i]);
+        }
+    }
 }
 
 void Bird::update(float deltaTime) {
     if (isDead) return;
     
+    // Update animation
     AnimatedSprite::update(deltaTime);
+    
+    // Update physics and rotation
+    PhysicsSprite::update(deltaTime);
     
     // Update rotation based on vertical velocity
     if (velocityY < 0) {
@@ -84,7 +112,11 @@ void Bird::update(float deltaTime) {
 }
 
 void Bird::render(SDL_Renderer* ren) {
-    if (!isActive || !texture) return;
+    if (!isActive) return;
+    
+    // Get the current frame texture based on animation frame
+    SDL_Texture* currentTexture = frameTextures[currentFrame];
+    if (!currentTexture) return;
     
     // Create destination rectangle
     SDL_Rect destRect = rect;
@@ -93,7 +125,7 @@ void Bird::render(SDL_Renderer* ren) {
     SDL_Point center = {rect.w / 2, rect.h / 2};
     
     // Render the bird with current rotation
-    SDL_RenderCopyEx(ren, texture, nullptr, &destRect, rotation, &center, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(ren, currentTexture, nullptr, &destRect, rotation, &center, SDL_FLIP_NONE);
 }
 
 void Bird::die() {
@@ -106,7 +138,6 @@ void Bird::die() {
 void Bird::handleCollision(Sprite* other) {
     die();
 }
-
 void Bird::flap() {
     if (!isDead) {
         velocityY = -400.0f;

@@ -10,8 +10,8 @@ GameLevel::GameLevel(SDL_Renderer* ren)
       levelUpThreshold(10),
       renderer(ren) {
     
-    // Initialize bird
-    bird = new Bird(ren, "resources/images/bird.png", WINDOW_WIDTH/4, WINDOW_HEIGHT/2);
+    // Initialize bird - now using updated constructor with 3 parameters
+    bird = new Bird(ren, WINDOW_WIDTH/4, WINDOW_HEIGHT/2);
     sprites.push_back(std::unique_ptr<Sprite>(bird));
     
     // Initialize pipes with proper spacing
