@@ -35,19 +35,24 @@ void Pipe::reset(int x) {
     
     // Calculate gap size based on bird height
     int gapSize = PIPE_GAP;
-    int minDistance = BIRD_HEIGHT * 2; // Minimum distance from screen edges
+    int minDistanceFromGround = BIRD_HEIGHT * 2.5; // Minimum distance from ground
     
-    // Calculate available space
-    int availableSpace = WINDOW_HEIGHT - gapSize - (2 * minDistance);
+    // Calculate available space considering only bottom ground
+    int totalPlayableHeight = WINDOW_HEIGHT - GROUND_HEIGHT;
     
-    // Generate random position for gap
-    int gapStart = minDistance + (rand() % (availableSpace / 2));
+    // Generate random position for gap with wider range
+    // Allow gap to be positioned between 20% and 80% of playable height
+    int minGapY = static_cast<int>(totalPlayableHeight * 0.2);
+    int maxGapY = static_cast<int>(totalPlayableHeight * 0.8);
+    int availableRange = maxGapY - minGapY - gapSize;
+    
+    int gapStart = minGapY + (rand() % availableRange);
     
     if (isTopPipe) {
-        rect.h = gapStart;
-        rect.y = 0;
+        rect.y = 0;  // Start from the very top of the window
+        rect.h = gapStart; // Height extends to where the gap starts
     } else {
         rect.y = gapStart + gapSize;
-        rect.h = WINDOW_HEIGHT - rect.y;
+        rect.h = (WINDOW_HEIGHT - GROUND_HEIGHT) - rect.y; // Extend exactly to the ground
     }
 }

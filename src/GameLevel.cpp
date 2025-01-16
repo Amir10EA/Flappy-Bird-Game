@@ -1,5 +1,7 @@
 #include "GameLevel.h"
 #include <algorithm>
+#include <iostream>
+using namespace std;
 
 GameLevel::GameLevel(SDL_Renderer* ren)
     : score(0),
@@ -8,9 +10,19 @@ GameLevel::GameLevel(SDL_Renderer* ren)
       isGameOver(false),
       currentLevel(1),
       levelUpThreshold(10),
-      renderer(ren) {
+      renderer(ren),
+      backgroundOffset(0) {
     
-    // Initialize bird - now using updated constructor with 3 parameters
+    SDL_Surface* bgSurface = IMG_Load("resources/images/flappy-bird-background.jpg");
+    if (bgSurface) {
+        backgroundTexture = SDL_CreateTextureFromSurface(ren, bgSurface);
+        SDL_FreeSurface(bgSurface);
+    } else {
+        std::cerr << "Failed to load background image: " << IMG_GetError() << std::endl;
+        backgroundTexture = nullptr;
+    }
+    
+    // Initialize bird
     bird = new Bird(ren, WINDOW_WIDTH/4, WINDOW_HEIGHT/2);
     sprites.push_back(std::unique_ptr<Sprite>(bird));
     
@@ -39,6 +51,9 @@ GameLevel::GameLevel(SDL_Renderer* ren)
 }
 
 GameLevel::~GameLevel() {
+    if (backgroundTexture) {
+        SDL_DestroyTexture(backgroundTexture);
+    }
     // Clean up score texture
     if (scoreTexture) {
         SDL_DestroyTexture(scoreTexture);
@@ -52,7 +67,13 @@ GameLevel::~GameLevel() {
 
 void GameLevel::update(float deltaTime) {
     if (!bird->isDying()) {
-        // Update all sprites
+        // Update background scroll
+        backgroundOffset += BACKGROUND_SCROLL_SPEED;
+        if (backgroundOffset >= 767) {  // Reset when we reach the duplicate point
+            backgroundOffset = 0;
+        }
+        
+        // Rest of the update logic remains the same...
         for (auto& sprite : sprites) {
             sprite->update(deltaTime);
         }
@@ -90,6 +111,16 @@ void GameLevel::update(float deltaTime) {
 
 
 void GameLevel::render(SDL_Renderer* ren) {
+    // Render scrolling background
+    if (backgroundTexture) {
+        SDL_Rect srcRect = {
+            static_cast<int>(backgroundOffset), 0,
+            WINDOW_WIDTH, WINDOW_HEIGHT
+        };
+        SDL_Rect destRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        SDL_RenderCopy(ren, backgroundTexture, &srcRect, &destRect);
+    }
+    
     // Render all sprites
     for (auto& sprite : sprites) {
         sprite->render(ren);

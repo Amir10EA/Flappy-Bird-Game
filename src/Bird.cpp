@@ -79,7 +79,6 @@ void Bird::update(float deltaTime) {
     
     // Update rotation based on vertical velocity
     if (velocityY < 0) {
-        // Bird is moving up - rotate upward quickly
         targetRotation = -30.0f;
         float rotationDiff = targetRotation - rotation;
         if (abs(rotationDiff) > 0.1f) {
@@ -87,7 +86,6 @@ void Bird::update(float deltaTime) {
             rotation += std::clamp(rotationDiff, -rotationChange, rotationChange);
         }
     } else {
-        // Bird is falling - gradually rotate downward
         targetRotation = 90.0f;
         float rotationDiff = targetRotation - rotation;
         if (abs(rotationDiff) > 0.1f) {
@@ -99,18 +97,23 @@ void Bird::update(float deltaTime) {
     // Clamp rotation to prevent extreme angles
     rotation = std::clamp(rotation, -30.0f, 90.0f);
     
-    // Add constraints to keep bird in view and check floor collision
+    // Add constraints to keep bird in view and check ground collision
     if (rect.y < 0) {
         rect.y = 0;
         velocityY = 0;
     }
-    if (rect.y + rect.h > WINDOW_HEIGHT) {
-        rect.y = WINDOW_HEIGHT - rect.h;
+    
+    // Check for ground collision (both top and bottom ground)
+    if (rect.y + rect.h > WINDOW_HEIGHT - GROUND_HEIGHT || rect.y < GROUND_HEIGHT) {
+        if (rect.y < GROUND_HEIGHT) {
+            rect.y = GROUND_HEIGHT;  // Place on top ground
+        } else {
+            rect.y = WINDOW_HEIGHT - GROUND_HEIGHT - rect.h;  // Place on bottom ground
+        }
         velocityY = 0;
         die();
     }
 }
-
 void Bird::render(SDL_Renderer* ren) {
     if (!isActive) return;
     

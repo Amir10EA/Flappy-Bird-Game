@@ -10,23 +10,27 @@
 
 class GameLevel {
 private:
-    private:
     std::vector<std::unique_ptr<Sprite>> sprites;
     Bird* bird;
     std::vector<Pipe*> pipes;
     int score;
     float spawnTimer;
     float difficulty;
-    int currentLevel;           // Track current level
+    int currentLevel;
     bool isGameOver;
     TTF_Font* font;
     SDL_Texture* scoreTexture;
-    SDL_Texture* levelTexture;  // New texture for level display
+    SDL_Texture* levelTexture;
     std::unique_ptr<GameOverScreen> gameOverScreen;
-    float levelUpThreshold;     // Points needed for level up
+    float levelUpThreshold;
     SDL_Renderer* renderer;
     
+    // New members for background
+    SDL_Texture* backgroundTexture;
+    float backgroundOffset;
+    
 public:
+    
     GameLevel(SDL_Renderer* ren);
     ~GameLevel();
     
