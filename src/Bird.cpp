@@ -98,18 +98,16 @@ void Bird::update(float deltaTime) {
     rotation = std::clamp(rotation, -30.0f, 90.0f);
     
     // Add constraints to keep bird in view and check ground collision
+    // For top boundary, use actual window border
     if (rect.y < 0) {
         rect.y = 0;
         velocityY = 0;
+        die();
     }
     
-    // Check for ground collision (both top and bottom ground)
-    if (rect.y + rect.h > WINDOW_HEIGHT - GROUND_HEIGHT || rect.y < GROUND_HEIGHT) {
-        if (rect.y < GROUND_HEIGHT) {
-            rect.y = GROUND_HEIGHT;  // Place on top ground
-        } else {
-            rect.y = WINDOW_HEIGHT - GROUND_HEIGHT - rect.h;  // Place on bottom ground
-        }
+    // For bottom boundary, use ground height
+    if (rect.y + rect.h > WINDOW_HEIGHT - GROUND_HEIGHT) {
+        rect.y = WINDOW_HEIGHT - GROUND_HEIGHT - rect.h;
         velocityY = 0;
         die();
     }
