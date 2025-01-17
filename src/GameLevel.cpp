@@ -37,12 +37,17 @@ GameLevel::GameLevel(SDL_Renderer* ren)
         sprites.push_back(std::unique_ptr<Sprite>(bottomPipe));
     }
     
-    // Initialize font
-    font = TTF_OpenFont("resources/fonts/Arial.ttf", 36);
+    // Initialize font with increased size (changed from 24 to 28)
+    font = TTF_OpenFont("resources/fonts/PressStart2P.ttf", 28);
+    if (!font) {
+        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
+        return;
+    }
+    
     scoreTexture = nullptr;
     levelTexture = nullptr;
     
-    // Initialize game over screen
+    // Initialize game over screen with the same font
     gameOverScreen = std::make_unique<GameOverScreen>(ren, font);
     
     // Initial texture updates
@@ -86,9 +91,15 @@ void GameLevel::update(float deltaTime) {
         }
         
         // Update score and level when passing pipes
+        // Only check top pipes to avoid double counting
         for (size_t i = 0; i < pipes.size(); i += 2) {
-            if (pipes[i]->getRect().x + PIPE_WIDTH < bird->getRect().x && 
-                pipes[i]->getRect().x + PIPE_WIDTH > bird->getRect().x - 5) {
+            // Get the pipe's right edge and bird's horizontal center
+            float pipeRightEdge = pipes[i]->getRect().x + PIPE_WIDTH;
+            float birdCenterX = bird->getRect().x + (bird->getRect().w / 2);
+            
+            // Score only when bird's center passes pipe's right edge
+            if (pipeRightEdge <= birdCenterX && 
+                pipeRightEdge > birdCenterX - (INITIAL_SCROLL_SPEED * difficulty)) {
                 score++;
                 updateScoreTexture(renderer);
                 
@@ -126,61 +137,34 @@ void GameLevel::render(SDL_Renderer* ren) {
         sprite->render(ren);
     }
     
-    // Render score at top center
-    if (scoreTexture) {
-        SDL_Rect panelRect = {
-            (WINDOW_WIDTH - 200) / 2,
-            20,
-            200,
-            60
+    // Create a single panel for both level and score with increased dimensions
+    SDL_Rect panelRect = {
+        (WINDOW_WIDTH - 240) / 2,  // Increased from 200 to 240 for wider area
+        15,  // Moved up slightly from 20 to 15
+        240,  // Increased width
+        120   // Increased height from 100 to 120
+    };
+    
+    // Render level at top of panel with larger dimensions
+    if (levelTexture) {
+        SDL_Rect levelRect = {
+            panelRect.x + (panelRect.w - 150) / 2,  // Increased from 120 to 150
+            panelRect.y + 15,
+            150,  // Increased width
+            40    // Increased height from 30 to 40
         };
-        
-        // Draw panel background
-        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(ren, 0, 0, 0, 180);
-        SDL_RenderFillRect(ren, &panelRect);
-        
-        // Add highlights
-        SDL_SetRenderDrawColor(ren, 255, 255, 255, 30);
-        SDL_Rect highlightRect = {panelRect.x, panelRect.y, panelRect.w, 2};
-        SDL_RenderFillRect(ren, &highlightRect);
-        
-        // Draw score
-        SDL_Rect scoreRect = {
-            panelRect.x + (panelRect.w - 100) / 2,
-            panelRect.y + (panelRect.h - 40) / 2,
-            100,
-            40
-        };
-        SDL_RenderCopy(ren, scoreTexture, nullptr, &scoreRect);
+        SDL_RenderCopy(ren, levelTexture, nullptr, &levelRect);
     }
     
-    // Render level indicator at top-left
-    if (levelTexture) {
-        SDL_Rect levelPanelRect = {
-            20,
-            20,
-            150,
-            50
+    // Render score directly below level with larger dimensions
+    if (scoreTexture) {
+        SDL_Rect scoreRect = {
+            panelRect.x + (panelRect.w - 130) / 2,  // Increased from 100 to 130
+            panelRect.y + 65,  // Adjusted to maintain spacing
+            130,  // Increased width
+            40    // Increased height from 30 to 40
         };
-        
-        // Draw panel background with gradient effect
-        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(ren, 0, 0, 0, 180);
-        SDL_RenderFillRect(ren, &levelPanelRect);
-        
-        // Add golden border
-        SDL_SetRenderDrawColor(ren, 255, 215, 0, 255);
-        SDL_RenderDrawRect(ren, &levelPanelRect);
-        
-        // Draw level text
-        SDL_Rect levelTextRect = {
-            levelPanelRect.x + 10,
-            levelPanelRect.y + 10,
-            130,
-            30
-        };
-        SDL_RenderCopy(ren, levelTexture, nullptr, &levelTextRect);
+        SDL_RenderCopy(ren, scoreTexture, nullptr, &scoreRect);
     }
     
     // Render game over screen if game is over
@@ -189,7 +173,6 @@ void GameLevel::render(SDL_Renderer* ren) {
         gameOverScreen->render(ren);
     }
 }
-
 void GameLevel::handleInput(const SDL_Event& event) {
     if (bird->isDying()) {
         if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -229,24 +212,21 @@ void GameLevel::reset() {
 }
 
 void GameLevel::updateScoreTexture(SDL_Renderer* ren) {
-    // Clean up existing texture if it exists
     if (scoreTexture) {
         SDL_DestroyTexture(scoreTexture);
         scoreTexture = nullptr;
     }
 
-    // Create score text with current score
+    // Create score text with label
     SDL_Color textColor = {255, 255, 255, 255}; // White color
-    std::string scoreText = "Score: " + std::to_string(score);
+    std::string scoreText = "   " + std::to_string(score) + "   ";
     
-    // Create surface from text
     SDL_Surface* surface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
     if (!surface) {
         printf("TTF_RenderText_Solid Error: %s\n", TTF_GetError());
         return;
     }
     
-    // Create texture from surface
     scoreTexture = SDL_CreateTextureFromSurface(ren, surface);
     if (!scoreTexture) {
         printf("SDL_CreateTextureFromSurface Error: %s\n", SDL_GetError());
@@ -254,7 +234,6 @@ void GameLevel::updateScoreTexture(SDL_Renderer* ren) {
         return;
     }
     
-    // Clean up surface
     SDL_FreeSurface(surface);
 }
 

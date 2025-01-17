@@ -8,6 +8,8 @@ Game::Game()
       targetFPS(60.0f),
       lastFrameTime(0),
       isTyping(false) {
+          
+    menuFont = nullptr;  // Initialize in init() method
 }
 
 Game::~Game() {
@@ -35,7 +37,7 @@ bool Game::init() {
         return false;
     }
     
- window = SDL_CreateWindow("Flappy Bird Clone",
+    window = SDL_CreateWindow("Flappy Bird Clone",
                             SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED,
                             WINDOW_WIDTH,
@@ -52,7 +54,8 @@ bool Game::init() {
         return false;
     }
     
-    menuFont = TTF_OpenFont("resources/fonts/Arial.ttf", 24);
+    // Update to use PressStart2P font
+    menuFont = TTF_OpenFont("resources/fonts/PressStart2P.ttf", 20);
     if (!menuFont) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
         return false;

@@ -9,12 +9,11 @@ GameOverScreen::GameOverScreen(SDL_Renderer* ren, TTF_Font* gameFont)
       bestScore(0) {
     
     // Initialize all rectangles with proper positioning
-    gameOverRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/3, 200, 50};
-    scoreRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 - 60, 200, 40};
-    bestScoreRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2, 200, 40};
-    buttonRect = {WINDOW_WIDTH/2 - 60, WINDOW_HEIGHT/2 + 60, 120, 40};
+    gameOverRect = {WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/3, 300, 60};
+    scoreRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 - 60, 200, 50};  // Made narrower
+    bestScoreRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2, 200, 50};   // Made narrower
+    buttonRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 60, 200, 60};
 }
-
 GameOverScreen::~GameOverScreen() {
     if (scoreTexture) SDL_DestroyTexture(scoreTexture);
     if (bestScoreTexture) SDL_DestroyTexture(bestScoreTexture);
@@ -64,36 +63,57 @@ void GameOverScreen::render(SDL_Renderer* ren) {
     renderText(ren, "Game Over!", shadowRect, shadowColor);
     renderText(ren, "Game Over!", gameOverRect, titleColor);
     
-    // Calculate and render level reached
-    int levelReached = (currentScore / 10) + 1;
+    // Render score with label
+    std::string scoreStr = "Score:" + std::to_string(currentScore);
+    std::string bestStr = "Best:" + std::to_string(bestScore);  // Removed space after colon
     
-    // Render scores and level
-    std::string scoreText = "Final Score: " + std::to_string(currentScore);
-    std::string levelText = "Level Reached: " + std::to_string(levelReached);
-    std::string bestText = "Best Score: " + std::to_string(bestScore);
+    // Center-align the score text
+    SDL_Surface* scoreSurface = TTF_RenderText_Solid(font, scoreStr.c_str(), highlightColor);
+    if (scoreSurface) {
+        SDL_Rect centeredScoreRect = scoreRect;
+        centeredScoreRect.w = scoreSurface->w;
+        centeredScoreRect.h = scoreSurface->h;
+        centeredScoreRect.x = WINDOW_WIDTH/2 - scoreSurface->w/2;
+        
+        SDL_Texture* scoreTexture = SDL_CreateTextureFromSurface(ren, scoreSurface);
+        SDL_RenderCopy(ren, scoreTexture, nullptr, &centeredScoreRect);
+        SDL_DestroyTexture(scoreTexture);
+        SDL_FreeSurface(scoreSurface);
+    }
     
-    renderText(ren, scoreText, scoreRect, highlightColor);
-    renderText(ren, levelText, levelRect, textColor);
-    renderText(ren, bestText, bestScoreRect, highlightColor);
+    // Center-align the best score text
+    SDL_Surface* bestSurface = TTF_RenderText_Solid(font, bestStr.c_str(), highlightColor);
+    if (bestSurface) {
+        SDL_Rect centeredBestRect = bestScoreRect;
+        centeredBestRect.w = bestSurface->w;
+        centeredBestRect.h = bestSurface->h;
+        centeredBestRect.x = WINDOW_WIDTH/2 - bestSurface->w/2;
+        
+        SDL_Texture* bestTexture = SDL_CreateTextureFromSurface(ren, bestSurface);
+        SDL_RenderCopy(ren, bestTexture, nullptr, &centeredBestRect);
+        SDL_DestroyTexture(bestTexture);
+        SDL_FreeSurface(bestSurface);
+    }
     
-    // Animate restart button
-    buttonPulse += 0.05f;
-    float scale = 1.0f + 0.05f * sin(buttonPulse);
+    // Draw restart button
+    SDL_Rect paddedButton = buttonRect;
     
-    SDL_Rect animatedButton = buttonRect;
-    animatedButton.w = static_cast<int>(buttonRect.w * scale);
-    animatedButton.h = static_cast<int>(buttonRect.h * scale);
-    animatedButton.x = WINDOW_WIDTH/2 - animatedButton.w/2;
-    
-    // Draw button with gradient
     SDL_SetRenderDrawColor(ren, 76, 175, 80, 255);
-    SDL_RenderFillRect(ren, &animatedButton);
+    SDL_RenderFillRect(ren, &paddedButton);
     
-    // Render "Restart" text
+    SDL_SetRenderDrawColor(ren, 255, 255, 255, 40);
+    SDL_RenderDrawRect(ren, &paddedButton);
+    
+    SDL_Rect textRect = {
+        paddedButton.x + 20,
+        paddedButton.y + 15,
+        paddedButton.w - 40,
+        paddedButton.h - 30
+    };
+    
     SDL_Color buttonTextColor = {255, 255, 255, 255};
-    renderText(ren, "Restart", animatedButton, buttonTextColor);
+    renderText(ren, "Restart", textRect, buttonTextColor);
 }
-
 void GameOverScreen::renderText(SDL_Renderer* ren, const std::string& text, SDL_Rect& rect, SDL_Color& color) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text.c_str(), color);
     if (surface) {
