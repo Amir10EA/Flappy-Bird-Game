@@ -8,12 +8,44 @@ GameOverScreen::GameOverScreen(SDL_Renderer* ren, TTF_Font* gameFont)
       currentScore(0), 
       bestScore(0) {
     
-    // Initialize all rectangles with proper positioning
-    gameOverRect = {WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/3, 300, 60};
-    scoreRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 - 60, 200, 50};  // Made narrower
-    bestScoreRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2, 200, 50};   // Made narrower
-    buttonRect = {WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 60, 200, 60};
+    // Increase panel height to 400px (from 300px) to accommodate all elements
+    int panelHeight = 400;
+    int panelTop = WINDOW_HEIGHT/2 - panelHeight/2;  // Center the taller panel vertically
+    
+    // Position game over text with padding from panel top
+    gameOverRect = {
+        WINDOW_WIDTH/2 - 150,
+        panelTop + 40,  // Keep same padding from top
+        300, 
+        60
+    };
+    
+    // Position score text with padding from game over text
+    scoreRect = {
+        WINDOW_WIDTH/2 - 100,
+        gameOverRect.y + gameOverRect.h + 30,
+        200,
+        50
+    };
+    
+    // Position best score text with padding from score text
+    bestScoreRect = {
+        WINDOW_WIDTH/2 - 100,
+        scoreRect.y + scoreRect.h + 20,
+        200,
+        50
+    };
+    
+    // Position button with padding from best score text, but ensure it stays within panel
+    buttonRect = {
+        WINDOW_WIDTH/2 - 100,
+        bestScoreRect.y + bestScoreRect.h + 25,
+        200,
+        60
+    };
 }
+
+// Rest of the implementation remains the same
 GameOverScreen::~GameOverScreen() {
     if (scoreTexture) SDL_DestroyTexture(scoreTexture);
     if (bestScoreTexture) SDL_DestroyTexture(bestScoreTexture);
@@ -27,6 +59,10 @@ void GameOverScreen::update(int score) {
     }
 }
 
+void GameOverScreen::setBestScore(int score) {
+    bestScore = score;
+}
+
 void GameOverScreen::render(SDL_Renderer* ren) {
     // Fade background
     SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
@@ -34,12 +70,12 @@ void GameOverScreen::render(SDL_Renderer* ren) {
     SDL_Rect fullscreen = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
     SDL_RenderFillRect(ren, &fullscreen);
 
-    // Create main panel
+    // Create main panel with increased height
     SDL_Rect panel = {
         WINDOW_WIDTH/2 - 200,
-        WINDOW_HEIGHT/2 - 150,
+        WINDOW_HEIGHT/2 - 200,
         400,
-        300
+        400
     };
     
     // Draw panel with gradient effect
@@ -50,9 +86,7 @@ void GameOverScreen::render(SDL_Renderer* ren) {
     SDL_SetRenderDrawColor(ren, 255, 215, 0, 255);
     SDL_RenderDrawRect(ren, &panel);
 
-    // Define colors
     SDL_Color titleColor = {255, 215, 0, 255};  // Gold
-    SDL_Color textColor = {255, 255, 255, 255}; // White
     SDL_Color highlightColor = {0, 255, 255, 255}; // Cyan
 
     // Render "Game Over!" with shadow
@@ -65,7 +99,7 @@ void GameOverScreen::render(SDL_Renderer* ren) {
     
     // Render score with label
     std::string scoreStr = "Score:" + std::to_string(currentScore);
-    std::string bestStr = "Best:" + std::to_string(bestScore);  // Removed space after colon
+    std::string bestStr = "Best:" + std::to_string(bestScore);
     
     // Center-align the score text
     SDL_Surface* scoreSurface = TTF_RenderText_Solid(font, scoreStr.c_str(), highlightColor);
@@ -114,6 +148,7 @@ void GameOverScreen::render(SDL_Renderer* ren) {
     SDL_Color buttonTextColor = {255, 255, 255, 255};
     renderText(ren, "Restart", textRect, buttonTextColor);
 }
+
 void GameOverScreen::renderText(SDL_Renderer* ren, const std::string& text, SDL_Rect& rect, SDL_Color& color) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text.c_str(), color);
     if (surface) {

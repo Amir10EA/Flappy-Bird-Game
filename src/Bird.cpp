@@ -20,7 +20,11 @@ Bird::Bird(SDL_Renderer* ren, int x, int y)
       rotation(0),
       targetRotation(0),
       rotationSpeed(300.0f),
-      downwardRotationSpeed(100.0f) {  // Slightly reduced from 120.0f
+      downwardRotationSpeed(100.0f),
+      isGameStarted(false),
+      initialY(y),
+      hoverOffset(0),
+      hoverSpeed(2.0f) {   // Slightly reduced from 120.0f
     
     // Load sounds
     flapSound = Mix_LoadWAV("resources/sounds/flap.wav");
@@ -68,50 +72,60 @@ Bird::~Bird() {
     }
 }
 
-void Bird::update(float deltaTime) {
+void Bird::update(float deltaTime, bool gameStarted) {
     if (isDead) return;
     
-    // Update animation
+    // Always update animation
     AnimatedSprite::update(deltaTime);
     
-    // Update physics and rotation
-    PhysicsSprite::update(deltaTime);
-    
-    // Update rotation based on vertical velocity
-    if (velocityY < 0) {
-        targetRotation = -30.0f;
-        float rotationDiff = targetRotation - rotation;
-        if (abs(rotationDiff) > 0.1f) {
-            float rotationChange = rotationSpeed * deltaTime;
-            rotation += std::clamp(rotationDiff, -rotationChange, rotationChange);
-        }
+    if (!gameStarted) {
+        // Implement hovering motion
+        hoverOffset += hoverSpeed * deltaTime;
+        rect.y = initialY + sin(hoverOffset) * 10.0f;  // Adjust 10.0f for hover amplitude
+        rotation = 0;  // Keep bird level while hovering
     } else {
-        targetRotation = 90.0f;
-        float rotationDiff = targetRotation - rotation;
-        if (abs(rotationDiff) > 0.1f) {
-            float rotationChange = downwardRotationSpeed * deltaTime;
-            rotation += std::clamp(rotationDiff, -rotationChange, rotationChange);
+        // Normal physics and rotation updates
+        PhysicsSprite::update(deltaTime);
+        
+        if (velocityY < 0) {
+            targetRotation = -30.0f;
+            float rotationDiff = targetRotation - rotation;
+            if (abs(rotationDiff) > 0.1f) {
+                float rotationChange = rotationSpeed * deltaTime;
+                rotation += std::clamp(rotationDiff, -rotationChange, rotationChange);
+            }
+        } else {
+            targetRotation = 90.0f;
+            float rotationDiff = targetRotation - rotation;
+            if (abs(rotationDiff) > 0.1f) {
+                float rotationChange = downwardRotationSpeed * deltaTime;
+                rotation += std::clamp(rotationDiff, -rotationChange, rotationChange);
+            }
         }
-    }
-    
-    // Clamp rotation to prevent extreme angles
-    rotation = std::clamp(rotation, -30.0f, 90.0f);
-    
-    // Add constraints to keep bird in view and check ground collision
-    // For top boundary, use actual window border
-    if (rect.y < 0) {
-        rect.y = 0;
-        velocityY = 0;
-        die();
-    }
-    
-    // For bottom boundary, use ground height
-    if (rect.y + rect.h > WINDOW_HEIGHT - GROUND_HEIGHT) {
-        rect.y = WINDOW_HEIGHT - GROUND_HEIGHT - rect.h;
-        velocityY = 0;
-        die();
+        
+        rotation = std::clamp(rotation, -30.0f, 90.0f);
+        
+        // Boundary checks
+        if (rect.y < 0) {
+            rect.y = 0;
+            velocityY = 0;
+            die();
+        }
+        
+        if (rect.y + rect.h > WINDOW_HEIGHT - GROUND_HEIGHT) {
+            rect.y = WINDOW_HEIGHT - GROUND_HEIGHT - rect.h;
+            velocityY = 0;
+            die();
+        }
     }
 }
+
+void Bird::startGame() {
+    isGameStarted = true;
+    initialY = rect.y;  // Store current Y position as initial position
+    velocityY = 0;     // Ensure velocity is reset when starting
+}
+
 void Bird::render(SDL_Renderer* ren) {
     if (!isActive) return;
     

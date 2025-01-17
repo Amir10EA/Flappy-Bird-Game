@@ -5,13 +5,20 @@ using namespace std;
 
 GameLevel::GameLevel(SDL_Renderer* ren)
     : score(0),
-      spawnTimer(0),
+      bestScore(0),
       difficulty(1.0f),
-      isGameOver(false),
       currentLevel(1),
       levelUpThreshold(10),
       renderer(ren),
-      backgroundOffset(0) {
+      backgroundOffset(0),
+      gameStarted(false),
+      levelUpSound(nullptr) {
+    
+    // Load the level up sound
+    levelUpSound = Mix_LoadWAV("resources/sounds/level-up.wav");
+    if (!levelUpSound) {
+        std::cerr << "Failed to load level up sound: " << Mix_GetError() << std::endl;
+    }
     
     SDL_Surface* bgSurface = IMG_Load("resources/images/flappy-bird-background.jpg");
     if (bgSurface) {
@@ -37,7 +44,7 @@ GameLevel::GameLevel(SDL_Renderer* ren)
         sprites.push_back(std::unique_ptr<Sprite>(bottomPipe));
     }
     
-    // Initialize font with increased size (changed from 24 to 28)
+    // Initialize font
     font = TTF_OpenFont("resources/fonts/PressStart2P.ttf", 28);
     if (!font) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
@@ -47,15 +54,18 @@ GameLevel::GameLevel(SDL_Renderer* ren)
     scoreTexture = nullptr;
     levelTexture = nullptr;
     
-    // Initialize game over screen with the same font
     gameOverScreen = std::make_unique<GameOverScreen>(ren, font);
     
-    // Initial texture updates
     updateScoreTexture(renderer);
     updateLevelTexture(renderer);
+
+    loadBestScore();
 }
 
 GameLevel::~GameLevel() {
+    if (levelUpSound) {
+        Mix_FreeChunk(levelUpSound);
+    }
     if (backgroundTexture) {
         SDL_DestroyTexture(backgroundTexture);
     }
@@ -72,51 +82,61 @@ GameLevel::~GameLevel() {
 
 void GameLevel::update(float deltaTime) {
     if (!bird->isDying()) {
-        // Update background scroll
-        backgroundOffset += BACKGROUND_SCROLL_SPEED;
-        if (backgroundOffset >= 767) {  // Reset when we reach the duplicate point
-            backgroundOffset = 0;
-        }
-        
-        // Rest of the update logic remains the same...
-        for (auto& sprite : sprites) {
-            sprite->update(deltaTime);
-        }
-        
-        // Check collisions
-        for (auto& sprite : sprites) {
-            if (sprite.get() != bird && bird->checkCollision(sprite.get())) {
-                bird->handleCollision(sprite.get());
+        if (gameStarted) {
+            // Update background scroll
+            backgroundOffset += BACKGROUND_SCROLL_SPEED;
+            if (backgroundOffset >= 767) {
+                backgroundOffset = 0;
             }
-        }
-        
-        // Update score and level when passing pipes
-        // Only check top pipes to avoid double counting
-        for (size_t i = 0; i < pipes.size(); i += 2) {
-            // Get the pipe's right edge and bird's horizontal center
-            float pipeRightEdge = pipes[i]->getRect().x + PIPE_WIDTH;
-            float birdCenterX = bird->getRect().x + (bird->getRect().w / 2);
             
-            // Score only when bird's center passes pipe's right edge
-            if (pipeRightEdge <= birdCenterX && 
-                pipeRightEdge > birdCenterX - (INITIAL_SCROLL_SPEED * difficulty)) {
-                score++;
-                updateScoreTexture(renderer);
+            // Update pipe positions and check score only if game has started
+            for (auto& sprite : sprites) {
+                if (dynamic_cast<Pipe*>(sprite.get())) {
+                    sprite->update(deltaTime);
+                }
+            }
+            
+            // Check collisions
+            for (auto& sprite : sprites) {
+                if (sprite.get() != bird && bird->checkCollision(sprite.get())) {
+                    bird->handleCollision(sprite.get());
+                }
+            }
+            
+            // Update score and level when passing pipes
+            for (size_t i = 0; i < pipes.size(); i += 2) {
+                float pipeRightEdge = pipes[i]->getRect().x + PIPE_WIDTH;
+                float birdCenterX = bird->getRect().x + (bird->getRect().w / 2);
                 
-                // Check for level up
-                int newLevel = (score / static_cast<int>(levelUpThreshold)) + 1;
-                if (newLevel != currentLevel) {
-                    currentLevel = newLevel;
-                    difficulty = 1.0f + (currentLevel - 1) * 0.2f;
-                    updateLevelTexture(renderer);
+                if (pipeRightEdge <= birdCenterX && 
+                    pipeRightEdge > birdCenterX - (INITIAL_SCROLL_SPEED * difficulty)) {
+                    score++;
+                    updateScoreTexture(renderer);
                     
-                    // Update pipe scroll speeds
-                    for (auto pipe : pipes) {
-                        pipe->setScrollSpeed(INITIAL_SCROLL_SPEED * difficulty);
+                    int newLevel = (score / static_cast<int>(levelUpThreshold)) + 1;
+                    if (newLevel != currentLevel) {
+                        // Level up occurred!
+                        currentLevel = newLevel;
+                        difficulty = 1.0f + (currentLevel - 1) * 0.2f;
+                        updateLevelTexture(renderer);
+                        
+                        // Play level up sound
+                        if (levelUpSound) {
+                            Mix_PlayChannel(-1, levelUpSound, 0);
+                        }
+                        
+                        for (auto pipe : pipes) {
+                            pipe->setScrollSpeed(INITIAL_SCROLL_SPEED * difficulty);
+                        }
                     }
                 }
             }
         }
+        
+        bird->update(deltaTime, gameStarted);
+    }
+    else {
+        saveBestScore();
     }
 }
 
@@ -182,22 +202,62 @@ void GameLevel::handleInput(const SDL_Event& event) {
                 reset();
             }
         }
-    } else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
-        bird->flap();
+    } else {
+        // Check for both spacebar and left mouse click
+        if ((event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) ||
+            (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT)) {
+            // Start game on first input if not started
+            if (!gameStarted) {
+                gameStarted = true;
+                bird->startGame();
+            }
+            bird->flap();
+        }
     }
 }
+
+void GameLevel::loadBestScore() {
+    std::ifstream file("best_score.dat");
+    if (file.is_open()) {
+        file >> bestScore;
+        file.close();
+    } else {
+        bestScore = 0;
+    }
+    
+    // Update the game over screen with loaded best score
+    if (gameOverScreen) {
+        gameOverScreen->setBestScore(bestScore);
+    }
+}
+
+void GameLevel::saveBestScore() {
+    if (score > bestScore) {
+        bestScore = score;
+        std::ofstream file("best_score.dat");
+        if (file.is_open()) {
+            file << bestScore;
+            file.close();
+        }
+        // Update the game over screen
+        if (gameOverScreen) {
+            gameOverScreen->setBestScore(bestScore);
+        }
+    }
+}
+
 
 void GameLevel::reset() {
     score = 0;
     currentLevel = 1;
     difficulty = 1.0f;
+    gameStarted = false;
+    // Removed: birdAnimating = true;
     
-    // Reset bird position and state
     bird->setPosition(WINDOW_WIDTH/4, WINDOW_HEIGHT/2);
     bird->setVelocity(0, 0);
     bird->resetState();
     
-    // Reset all pipes with proper spacing
     for (size_t i = 0; i < pipes.size(); i += 2) {
         float spacing = (i/2) * PIPE_SPACING;
         pipes[i]->reset(WINDOW_WIDTH + spacing);
@@ -206,7 +266,6 @@ void GameLevel::reset() {
         pipes[i+1]->setScrollSpeed(INITIAL_SCROLL_SPEED);
     }
     
-    // Update displays
     updateScoreTexture(renderer);
     updateLevelTexture(renderer);
 }

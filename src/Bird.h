@@ -19,12 +19,16 @@ private:
     float rotationSpeed;
     float downwardRotationSpeed;
     std::vector<SDL_Texture*> frameTextures;  // Store all frame textures
+    bool isGameStarted;
+    float initialY;  // Store initial Y position for hovering animation
+    float hoverOffset;  // Current hover offset
+    float hoverSpeed; 
     
 public:
     Bird(SDL_Renderer* ren, int x, int y);  // Updated constructor
     ~Bird();
     
-    void update(float deltaTime) override;
+   
     void render(SDL_Renderer* ren) override;
     void handleCollision(Sprite* other) override;
     void flap();
@@ -38,6 +42,8 @@ public:
     // Delete copy constructor and assignment operator
     Bird(const Bird&) = delete;
     Bird& operator=(const Bird&) = delete;
+    void startGame();
+    void update(float deltaTime, bool gameStarted); 
 };
 
 #endif

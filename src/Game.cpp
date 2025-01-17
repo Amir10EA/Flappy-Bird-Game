@@ -1,5 +1,6 @@
 #include "Game.h"
 #include <iostream>
+#include "keyboard_shortcuts.h"
 
 Game::Game()
     : window(nullptr),
@@ -7,9 +8,9 @@ Game::Game()
       isRunning(false),
       targetFPS(60.0f),
       lastFrameTime(0),
-      isTyping(false) {
-          
-    menuFont = nullptr;  // Initialize in init() method
+      isPaused(false),
+      isMuted(false),
+      menuFont(nullptr) {
 }
 
 Game::~Game() {
@@ -54,7 +55,6 @@ bool Game::init() {
         return false;
     }
     
-    // Update to use PressStart2P font
     menuFont = TTF_OpenFont("resources/fonts/PressStart2P.ttf", 20);
     if (!menuFont) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
@@ -93,55 +93,54 @@ void Game::handleInput() {
                 break;
                 
             case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    isRunning = false;
-                } else if (event.key.keysym.sym == SDLK_r) {
-                    currentLevel->reset();
-                }
-                break;
-                
-            case SDL_TEXTINPUT:
-                if (isTyping) {
-                    playerName += event.text.text;
+                switch (event.key.keysym.sym) {
+                    case SDLK_ESCAPE:
+                        isRunning = false;
+                        break;
+                    case SDLK_r:
+                        currentLevel->reset();
+                        break;
+                    case SDLK_p:
+                        togglePause(isPaused);
+                        break;
+                    case SDLK_m:
+                        toggleMute(isMuted);
+                        break;
+                    case SDLK_UP:
+                        adjustVolume(10);
+                        break;
+                    case SDLK_DOWN:
+                        adjustVolume(-10);
+                        break;
                 }
                 break;
         }
         
-        currentLevel->handleInput(event);
+        if (!isPaused) {
+            currentLevel->handleInput(event);
+        }
     }
 }
 
 void Game::update() {
-    float deltaTime = (SDL_GetTicks() - lastFrameTime) / 1000.0f;
-    lastFrameTime = SDL_GetTicks();
-    
-    // Cap delta time to prevent physics issues
-    if (deltaTime > 0.05f) {
-        deltaTime = 0.05f;
+    if (!isPaused) {
+        float deltaTime = (SDL_GetTicks() - lastFrameTime) / 1000.0f;
+        lastFrameTime = SDL_GetTicks();
+        
+        if (deltaTime > 0.05f) {
+            deltaTime = 0.05f;
+        }
+        
+        currentLevel->update(deltaTime);
     }
-    
-    currentLevel->update(deltaTime);
 }
 
 void Game::render() {
-    SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255); // Sky blue background
+    // Removed sky blue background since we use a background image
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Simple black background as fallback
     SDL_RenderClear(renderer);
     
     currentLevel->render(renderer);
-    
-    // Render player name input if typing
-    if (isTyping) {
-        SDL_Color textColor = {255, 255, 255, 255};
-        SDL_Surface* surface = TTF_RenderText_Solid(menuFont, 
-            ("Enter name: " + playerName).c_str(), textColor);
-        if (surface) {
-            SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-            SDL_Rect textRect = {10, WINDOW_HEIGHT - 40, surface->w, surface->h};
-            SDL_RenderCopy(renderer, texture, nullptr, &textRect);
-            SDL_DestroyTexture(texture);
-            SDL_FreeSurface(surface);
-        }
-    }
     
     SDL_RenderPresent(renderer);
 }

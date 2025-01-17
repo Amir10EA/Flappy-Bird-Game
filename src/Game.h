@@ -16,11 +16,9 @@ private:
     std::unique_ptr<GameLevel> currentLevel;
     float targetFPS;
     Uint32 lastFrameTime;
-    
-    // Text input handling
-    std::string playerName;
-    bool isTyping;
     TTF_Font* menuFont;
+    bool isPaused;
+    bool isMuted;
     
 public:
     Game();
@@ -34,4 +32,4 @@ public:
     void cleanup();
 };
 
-#endif 
+#endif

@@ -35,7 +35,6 @@ void Pipe::reset(int x) {
     
     // Calculate gap size based on bird height
     int gapSize = PIPE_GAP;
-    int minDistanceFromGround = BIRD_HEIGHT * 2.5; // Minimum distance from ground
     
     // Calculate available space considering only bottom ground
     int totalPlayableHeight = WINDOW_HEIGHT - GROUND_HEIGHT;

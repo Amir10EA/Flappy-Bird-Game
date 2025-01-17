@@ -22,6 +22,7 @@ private:
     float buttonPulse;       // For button animation
     
 public:
+    void setBestScore(int score);
     GameOverScreen(SDL_Renderer* ren, TTF_Font* gameFont);
     ~GameOverScreen();
     

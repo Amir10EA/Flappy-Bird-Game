@@ -1,12 +1,15 @@
 #ifndef GAME_LEVEL_H
 #define GAME_LEVEL_H
 
+#include <fstream>
+#include <string>
 #include <vector>
 #include <memory>
 #include "Bird.h"
 #include "Pipe.h"
 #include "GameOverScreen.h"
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 class GameLevel {
 private:
@@ -14,23 +17,21 @@ private:
     Bird* bird;
     std::vector<Pipe*> pipes;
     int score;
-    float spawnTimer;
     float difficulty;
     int currentLevel;
-    bool isGameOver;
     TTF_Font* font;
     SDL_Texture* scoreTexture;
     SDL_Texture* levelTexture;
     std::unique_ptr<GameOverScreen> gameOverScreen;
     float levelUpThreshold;
     SDL_Renderer* renderer;
-    
-    // New members for background
+    Mix_Chunk* levelUpSound;
     SDL_Texture* backgroundTexture;
     float backgroundOffset;
+    bool gameStarted;
+    int bestScore;
     
 public:
-    
     GameLevel(SDL_Renderer* ren);
     ~GameLevel();
     
@@ -42,5 +43,9 @@ public:
     int getCurrentLevel() const { return currentLevel; }
     void updateScoreTexture(SDL_Renderer* ren);
     void updateLevelTexture(SDL_Renderer* ren);
+private:
+    void loadBestScore();
+    void saveBestScore();
 };
+
 #endif
