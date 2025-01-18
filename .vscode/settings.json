@@ -54,6 +54,7 @@
         "variant": "cpp",
         "cstring": "cpp",
         "*.rh": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "fstream": "cpp"
     }
 }
