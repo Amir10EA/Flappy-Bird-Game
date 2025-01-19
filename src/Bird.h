@@ -37,6 +37,7 @@ public:
     Bird &operator=(const Bird &) = delete;
     void startGame();
     void update(float dTime, bool gameStarted);
+    float getRotation() const { return rotation; }
 };
 
 #endif

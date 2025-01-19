@@ -12,7 +12,7 @@ Bird::Bird(SDL_Renderer *ren, int x, int y) : AnimatedSprite(ren, "resources/ima
     hitsound = Mix_LoadWAV("resources/sounds/hit.wav");
     SDL_Surface *midwaySurface = IMG_Load("resources/images/bird-wing-midway.png");
     SDL_Surface *downSurface = IMG_Load("resources/images/bird-wing-down.png");
-
+    collisionType = CollisionType::PIXEL;
     if (midwaySurface && downSurface)
     {
         SDL_Texture *midwayTexture = SDL_CreateTextureFromSurface(ren, midwaySurface);
@@ -29,7 +29,6 @@ Bird::Bird(SDL_Renderer *ren, int x, int y) : AnimatedSprite(ren, "resources/ima
             addframe(frameRect);
         }
     }
-
     settimeframe(0.1f);
     setlooping(true);
     setGravityScale(1.0f);
