@@ -7,6 +7,8 @@
 #include <functional>
 #include "Constants.h"
 
+class GameEngine;
+
 enum class CollisionType {
     NONE,
     RECTANGLE,
@@ -21,6 +23,7 @@ protected:
     bool isCollidable;
     CollisionType collisionType;
     SDL_Surface* surface;
+    GameEngine* gameEngine;
     Sprite(SDL_Renderer* renderer, const std::string& path, int xcor, int ycor, int width, int height);
 
 private:
@@ -32,6 +35,7 @@ public:
     virtual void update(float time) = 0;
     virtual void render(SDL_Renderer *renderer);
     virtual void handleCollision(Sprite *other) {}
+    virtual void handleEvent(const SDL_Event& event) {}
     bool checkCollision(Sprite *other);
     bool checkPixelCollision(Sprite *other);
     SDL_Rect getRect() const { return rect; }
@@ -42,5 +46,7 @@ public:
         rect.x = x;
         rect.y = y;
     }
+    void setGameEngine(GameEngine* engine) { gameEngine = engine; }
+    GameEngine* getGameEngine() const { return gameEngine; }
 };
 #endif
