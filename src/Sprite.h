@@ -7,27 +7,27 @@
 #include <functional>
 #include "Constants.h"
 
-enum class CollisionType
-{
+enum class CollisionType {
     NONE,
     RECTANGLE,
     PIXEL
 };
 
-class Sprite
-{
+class Sprite {
 protected:
     SDL_Rect rect;
-    SDL_Texture *texture;
+    SDL_Texture* texture;
     bool isActive;
     bool isCollidable;
     CollisionType collisionType;
-    SDL_Surface *surface;
-    Sprite(SDL_Renderer *ren, const std::string &path, int x, int y, int w, int h);
+    SDL_Surface* surface;
+    Sprite(SDL_Renderer* ren, const std::string& path, int x, int y, int w, int h);
+
+private:
+    Sprite(const Sprite&) = delete;
+    Sprite& operator=(const Sprite&) = delete;
 
 public:
-    Sprite(const Sprite &) = delete;
-    Sprite &operator=(const Sprite &) = delete;
     virtual ~Sprite();
     virtual void update(float deltaTime) = 0;
     virtual void render(SDL_Renderer *ren);

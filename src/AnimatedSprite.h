@@ -12,10 +12,9 @@ protected:
     float frameTime;
     float frameTimer;
     bool looping;
-
-public:
     AnimatedSprite(SDL_Renderer *ren, const std::string &path, int x, int y, int w, int h);
 
+public:
     void update(float deltaTime) override;
     void addFrame(const SDL_Rect &frame);
     void setFrameTime(float time) { frameTime = time; }
