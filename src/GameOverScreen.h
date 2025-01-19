@@ -19,7 +19,7 @@ private:
     SDL_Rect buttonRect;
     int curentscore;
     int bestscore;
-    //float buttonPulse;
+    
 
 public:
     void setBestScore(int score);

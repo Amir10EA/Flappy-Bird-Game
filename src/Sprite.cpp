@@ -1,14 +1,13 @@
 #include "Sprite.h"
 #include <iostream>
 
-Sprite::Sprite(SDL_Renderer* renderer, const std::string& path, int xcor, int ycor, int width, int height)
-    : isActive(true), isCollidable(true), collisionType(CollisionType::RECTANGLE), surface(nullptr)
+Sprite::Sprite(SDL_Renderer *renderer, const std::string &path, int xcor, int ycor, int width, int height) : isActive(true), isCollidable(true), collisionType(CollisionType::RECTANGLE), surface(nullptr)
 {
     rect = {xcor, ycor, width, height};
     surface = IMG_Load(path.c_str());
     if (!surface)
     {
-        std::cerr <<  IMG_GetError() << std::endl;
+        std::cerr << IMG_GetError() << std::endl;
         return;
     }
     texture = SDL_CreateTextureFromSurface(renderer, surface);

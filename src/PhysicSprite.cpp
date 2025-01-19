@@ -1,12 +1,7 @@
 #include "PhysicsSprite.h"
 #include "Constants.h"
 
-PhysicsSprite::PhysicsSprite(SDL_Renderer *renderer, const std::string &path, int xcor, int ycor, int width, int height)
-    : Sprite(renderer, path, xcor, ycor, width, height),
-      velocityX(0), velocityY(0),
-      gravityScale(1.0f),
-      elasticity(0.5f),
-      affectedByGravity(true)
+PhysicsSprite::PhysicsSprite(SDL_Renderer *renderer, const std::string &path, int xcor, int ycor, int width, int height) : Sprite(renderer, path, xcor, ycor, width, height), velocityX(0), velocityY(0), gravityScale(1.0f), elasticity(0.5f), affectedByGravity(true)
 {
 }
 void PhysicsSprite::update(float time)

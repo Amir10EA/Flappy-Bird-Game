@@ -6,22 +6,8 @@ T clamp(T value, T min, T max)
     return std::min(std::max(value, min), max);
 }
 
-Bird::Bird(SDL_Renderer *ren, int x, int y)
-    : AnimatedSprite(ren, "resources/images/bird-wing-up.png", x, y, BIRD_WIDTH, BIRD_HEIGHT),
-      flappower(FLAP_FORCE),
-      dead(false),
-      flaxsound(nullptr),
-      hitsound(nullptr),
-      rotation(0),
-      targetrotation(0),
-      speedrotation(300.0f),
-      rotationdown(100.0f),
-      gamestarted(false),
-      initialY(y),
-      offset(0),
-      hoverspeed(2.0f)
+Bird::Bird(SDL_Renderer *ren, int x, int y) : AnimatedSprite(ren, "resources/images/bird-wing-up.png", x, y, BIRD_WIDTH, BIRD_HEIGHT), flappower(FLAP_FORCE), dead(false), flaxsound(nullptr), hitsound(nullptr), rotation(0), targetrotation(0), speedrotation(300.0f), rotationdown(100.0f), gamestarted(false), initialY(y), offset(0), hoverspeed(2.0f)
 {
-
     flaxsound = Mix_LoadWAV("resources/sounds/flap.wav");
     hitsound = Mix_LoadWAV("resources/sounds/hit.wav");
     SDL_Surface *midwaySurface = IMG_Load("resources/images/bird-wing-midway.png");
@@ -117,9 +103,10 @@ void Bird::update(float time, bool gameStarted)
     }
 }
 
-void Bird::reset(){
-         dead = false;
-        velocityY = 0;
+void Bird::reset()
+{
+    dead = false;
+    velocityY = 0;
 }
 void Bird::startGame()
 {

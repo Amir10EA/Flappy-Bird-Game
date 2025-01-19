@@ -1,9 +1,6 @@
 #include "Pipe.h"
 
-Pipe::Pipe(SDL_Renderer *renderer, const std::string &path, int xcor, int ycor, bool top)
-    : PhysicsSprite(renderer, path, xcor, ycor, PIPE_WIDTH, WINDOW_HEIGHT),
-      scrollspeed(INITIAL_SCROLL_SPEED),
-      toppipe(top)
+Pipe::Pipe(SDL_Renderer *renderer, const std::string &path, int xcor, int ycor, bool top) : PhysicsSprite(renderer, path, xcor, ycor, PIPE_WIDTH, WINDOW_HEIGHT), scrollspeed(INITIAL_SCROLL_SPEED), toppipe(top)
 {
     affectedByGravity = false;
     reset(xcor);

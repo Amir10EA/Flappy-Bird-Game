@@ -1,35 +1,19 @@
 #ifndef GAME_H
 #define GAME_H
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
-#include <memory>
-#include "GameLevel.h"
 
-class Game
-{
+#include "GameEngine.h"
+
+class Game : public GameEngine {
 private:
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    bool running;
     std::unique_ptr<GameLevel> curentlevel;
-    float fps;
-    Uint32 lastframetime;
-    TTF_Font *font;
-    bool paused;
-    bool muted;
 
 public:
     Game();
-    ~Game();
-    bool initialize();
-    void run();
-    void handleInput();
-    void update();
-    void render();
-    void cleanup();
-    bool getPaused() const { return paused; }
+    ~Game() override;
+    bool initialize() override;
+    void handleInput() override;
+    void update() override;
+    void render() override;
 };
 
 #endif

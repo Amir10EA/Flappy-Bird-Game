@@ -3,16 +3,7 @@
 #include <iostream>
 using namespace std;
 
-GameLevel::GameLevel(SDL_Renderer *renderer)
-    : score(0),
-      bestScore(0),
-      difficulty(1.0f),
-      curentlevel(1),
-      levelupthreshold(10),
-      renderer(renderer),
-      backgroundoffset(0),
-      started(false),
-      levelupsound(nullptr)
+GameLevel::GameLevel(SDL_Renderer *renderer) : score(0), bestScore(0), difficulty(1.0f), curentlevel(1), levelupthreshold(10), renderer(renderer), backgroundoffset(0), started(false), levelupsound(nullptr)
 {
     levelupsound = Mix_LoadWAV("resources/sounds/level-up.wav");
     if (!levelupsound)
