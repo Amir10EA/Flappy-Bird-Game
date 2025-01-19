@@ -71,6 +71,10 @@ GameLevel::~GameLevel()
     {
         SDL_DestroyTexture(scoretexture);
     }
+    if (leveltexture)
+    {
+        SDL_DestroyTexture(leveltexture);
+    }
     if (font)
     {
         TTF_CloseFont(font);

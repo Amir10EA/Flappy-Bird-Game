@@ -15,9 +15,23 @@ Game::Game() : window(nullptr),
 
 Game::~Game()
 {
-    cleanup();
+    if (font)
+    {
+        TTF_CloseFont(font);
+    }
+    if (renderer)
+    {
+        SDL_DestroyRenderer(renderer);
+    }
+    if (window)
+    {
+        SDL_DestroyWindow(window);
+    }
+    Mix_CloseAudio();
+    TTF_Quit();
+    IMG_Quit();
+    SDL_Quit();
 }
-
 bool Game::initialize()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
@@ -153,22 +167,3 @@ void Game::render()
     SDL_RenderPresent(renderer);
 }
 
-void Game::cleanup()
-{
-    if (font)
-    {
-        TTF_CloseFont(font);
-    }
-    if (renderer)
-    {
-        SDL_DestroyRenderer(renderer);
-    }
-    if (window)
-    {
-        SDL_DestroyWindow(window);
-    }
-    Mix_CloseAudio();
-    TTF_Quit();
-    IMG_Quit();
-    SDL_Quit();
-}
