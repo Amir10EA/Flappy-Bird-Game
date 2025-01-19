@@ -2,15 +2,14 @@
 #include <iostream>
 #include "keyboard_shortcuts.h"
 
-Game::Game()
-    : window(nullptr),
-      renderer(nullptr),
-      isRunning(false),
-      targetFPS(60.0f),
-      lastFrameTime(0),
-      isPaused(false),
-      isMuted(false),
-      menuFont(nullptr)
+Game::Game() : window(nullptr),
+               renderer(nullptr),
+               running(false),
+               fps(60.0f),
+               lastframetime(0),
+               paused(false),
+               muted(false),
+               font(nullptr)
 {
 }
 
@@ -19,64 +18,64 @@ Game::~Game()
     cleanup();
 }
 
-bool Game::init()
+bool Game::initialize()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
-        std::cerr << "SDL initialization failed: " << SDL_GetError() << std::endl;
+        std::cerr << SDL_GetError() << std::endl;
         return false;
     }
     if (IMG_Init(IMG_INIT_PNG) < 0)
     {
-        std::cerr << "SDL_image initialization failed: " << IMG_GetError() << std::endl;
+        std::cerr << IMG_GetError() << std::endl;
         return false;
     }
     if (TTF_Init() < 0)
     {
-        std::cerr << "SDL_ttf initialization failed: " << TTF_GetError() << std::endl;
+        std::cerr << TTF_GetError() << std::endl;
         return false;
     }
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
-        std::cerr << "SDL_mixer initialization failed: " << Mix_GetError() << std::endl;
+        std::cerr << Mix_GetError() << std::endl;
         return false;
     }
-    window = SDL_CreateWindow("Flappy Bird Clone", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("Flappy Bird", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     if (!window)
     {
-        std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
+        std::cerr << SDL_GetError() << std::endl;
         return false;
     }
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!renderer)
     {
-        std::cerr << "Renderer creation failed: " << SDL_GetError() << std::endl;
+        std::cerr << SDL_GetError() << std::endl;
         return false;
     }
-    menuFont = TTF_OpenFont("resources/fonts/PressStart2P.ttf", 20);
-    if (!menuFont)
+    font = TTF_OpenFont("resources/fonts/PressStart2P.ttf", 20);
+    if (!font)
     {
-        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
+        std::cerr << TTF_GetError() << std::endl;
         return false;
     }
-    currentLevel = std::make_unique<GameLevel>(renderer);
-    isRunning = true;
+    curentlevel = std::make_unique<GameLevel>(renderer);
+    running = true;
     return true;
 }
 
 void Game::run()
 {
-    const float frameDelay = 1000.0f / targetFPS;
-    while (isRunning)
+    const float frameDelay = 1000.0f / FPS;
+    while (running)
     {
-        Uint32 frameStart = SDL_GetTicks();
+        Uint32 startingframe = SDL_GetTicks();
         handleInput();
         update();
         render();
-        Uint32 frameTime = SDL_GetTicks() - frameStart;
-        if (frameTime < frameDelay)
+        Uint32 time = SDL_GetTicks() - startingframe;
+        if (time < frameDelay)
         {
-            SDL_Delay(static_cast<Uint32>(frameDelay - frameTime));
+            SDL_Delay(static_cast<Uint32>(frameDelay - time));
         }
     }
 }
@@ -88,24 +87,25 @@ void Game::handleInput()
         switch (event.type)
         {
         case SDL_QUIT:
-            isRunning = false;
+            running = false;
             break;
         case SDL_KEYDOWN:
             switch (event.key.keysym.sym)
             {
             case SDLK_ESCAPE:
-                isRunning = false;
+                running = false;
                 break;
             case SDLK_r:
-                currentLevel->reset();
+                curentlevel->reset();
                 break;
             case SDLK_p:
-                if (!currentLevel->isGameOver()) { 
-                    togglePause(isPaused);
+                if (!curentlevel->isGameOver())
+                {
+                    togglePause(paused);
                 }
                 break;
             case SDLK_m:
-                toggleMute(isMuted);
+                toggleMute(muted);
                 break;
             case SDLK_UP:
                 adjustVolume(10);
@@ -116,29 +116,32 @@ void Game::handleInput()
             }
             break;
         }
-        if (isPaused) {
+        if (paused)
+        {
             if ((event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) ||
-                (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT)) {
-                isPaused = false;
-                currentLevel->handleInput(event);  
+                (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT))
+            {
+                paused = false;
+                curentlevel->handleInput(event);
             }
         }
-        else {
-            currentLevel->handleInput(event);
+        else
+        {
+            curentlevel->handleInput(event);
         }
     }
 }
 void Game::update()
 {
-    if (!isPaused)
+    if (!paused)
     {
-        float deltaTime = (SDL_GetTicks() - lastFrameTime) / 1000.0f;
-        lastFrameTime = SDL_GetTicks();
-        if (deltaTime > 0.05f)
+        float time = (SDL_GetTicks() - lastframetime) / 1000.0f;
+        lastframetime = SDL_GetTicks();
+        if (time > 0.05f)
         {
-            deltaTime = 0.05f;
+            time = 0.05f;
         }
-        currentLevel->update(deltaTime);
+        curentlevel->update(time);
     }
 }
 
@@ -146,15 +149,15 @@ void Game::render()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    currentLevel->render(renderer);
+    curentlevel->render(renderer);
     SDL_RenderPresent(renderer);
 }
 
 void Game::cleanup()
 {
-    if (menuFont)
+    if (font)
     {
-        TTF_CloseFont(menuFont);
+        TTF_CloseFont(font);
     }
     if (renderer)
     {

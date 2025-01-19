@@ -1,7 +1,4 @@
 #include "Bird.h"
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 template <typename T>
 T clamp(T value, T min, T max)
@@ -11,22 +8,22 @@ T clamp(T value, T min, T max)
 
 Bird::Bird(SDL_Renderer *ren, int x, int y)
     : AnimatedSprite(ren, "resources/images/bird-wing-up.png", x, y, BIRD_WIDTH, BIRD_HEIGHT),
-      flapForce(FLAP_FORCE),
-      isDead(false),
-      flapSound(nullptr),
-      hitSound(nullptr),
+      flappower(FLAP_FORCE),
+      dead(false),
+      flaxsound(nullptr),
+      hitsound(nullptr),
       rotation(0),
-      targetRotation(0),
-      rotationSpeed(300.0f),
-      downwardRotationSpeed(100.0f),
-      isGameStarted(false),
+      targetrotation(0),
+      speedrotation(300.0f),
+      rotationdown(100.0f),
+      gamestarted(false),
       initialY(y),
-      hoverOffset(0),
-      hoverSpeed(2.0f)
+      offset(0),
+      hoverspeed(2.0f)
 {
 
-    flapSound = Mix_LoadWAV("resources/sounds/flap.wav");
-    hitSound = Mix_LoadWAV("resources/sounds/hit.wav");
+    flaxsound = Mix_LoadWAV("resources/sounds/flap.wav");
+    hitsound = Mix_LoadWAV("resources/sounds/hit.wav");
     SDL_Surface *midwaySurface = IMG_Load("resources/images/bird-wing-midway.png");
     SDL_Surface *downSurface = IMG_Load("resources/images/bird-wing-down.png");
 
@@ -34,21 +31,21 @@ Bird::Bird(SDL_Renderer *ren, int x, int y)
     {
         SDL_Texture *midwayTexture = SDL_CreateTextureFromSurface(ren, midwaySurface);
         SDL_Texture *downTexture = SDL_CreateTextureFromSurface(ren, downSurface);
-        frameTextures.push_back(texture);
-        frameTextures.push_back(midwayTexture);
-        frameTextures.push_back(downTexture);
-        frameTextures.push_back(midwayTexture);
+        textures.push_back(texture);
+        textures.push_back(midwayTexture);
+        textures.push_back(downTexture);
+        textures.push_back(midwayTexture);
         SDL_FreeSurface(midwaySurface);
         SDL_FreeSurface(downSurface);
         SDL_Rect frameRect = {0, 0, BIRD_WIDTH, BIRD_HEIGHT};
         for (int i = 0; i < 4; i++)
         {
-            addFrame(frameRect);
+            addframe(frameRect);
         }
     }
 
-    setFrameTime(0.1f);
-    setLooping(true);
+    settimeframe(0.1f);
+    setlooping(true);
     setGravityScale(1.0f);
     setElasticity(0.0f);
     velocityY = 0;
@@ -57,50 +54,50 @@ Bird::Bird(SDL_Renderer *ren, int x, int y)
 
 Bird::~Bird()
 {
-    if (flapSound)
-        Mix_FreeChunk(flapSound);
-    if (hitSound)
-        Mix_FreeChunk(hitSound);
-    for (size_t i = 1; i < frameTextures.size(); ++i)
+    if (flaxsound)
+        Mix_FreeChunk(flaxsound);
+    if (hitsound)
+        Mix_FreeChunk(hitsound);
+    for (size_t i = 1; i < textures.size(); ++i)
     {
-        if (frameTextures[i])
+        if (textures[i])
         {
-            SDL_DestroyTexture(frameTextures[i]);
+            SDL_DestroyTexture(textures[i]);
         }
     }
 }
 
-void Bird::update(float deltaTime, bool gameStarted)
+void Bird::update(float time, bool gameStarted)
 {
-    if (isDead)
+    if (dead)
         return;
-    AnimatedSprite::update(deltaTime);
+    AnimatedSprite::update(time);
     if (!gameStarted)
     {
-        hoverOffset += hoverSpeed * deltaTime;
-        rect.y = initialY + sin(hoverOffset) * 10.0f;
+        offset += hoverspeed * time;
+        rect.y = initialY + sin(offset) * 10.0f;
         rotation = 0;
     }
     else
     {
-        PhysicsSprite::update(deltaTime);
+        PhysicsSprite::update(time);
         if (velocityY < 0)
         {
-            targetRotation = -30.0f;
-            float rotationDiff = targetRotation - rotation;
-            if (abs(rotationDiff) > 0.1f)
+            targetrotation = -30.0f;
+            float rotationdifference = targetrotation - rotation;
+            if (abs(rotationdifference) > 0.1f)
             {
-                float rotationChange = rotationSpeed * deltaTime;
-                rotation += std::clamp(rotationDiff, -rotationChange, rotationChange);
+                float rotationChange = speedrotation * time;
+                rotation += std::clamp(rotationdifference, -rotationChange, rotationChange);
             }
         }
         else
         {
-            targetRotation = 90.0f;
-            float rotationDiff = targetRotation - rotation;
+            targetrotation = 90.0f;
+            float rotationDiff = targetrotation - rotation;
             if (abs(rotationDiff) > 0.1f)
             {
-                float rotationChange = downwardRotationSpeed * deltaTime;
+                float rotationChange = rotationdown * time;
                 rotation += std::clamp(rotationDiff, -rotationChange, rotationChange);
             }
         }
@@ -120,32 +117,36 @@ void Bird::update(float deltaTime, bool gameStarted)
     }
 }
 
+void Bird::reset(){
+         dead = false;
+        velocityY = 0;
+}
 void Bird::startGame()
 {
-    isGameStarted = true;
+    gamestarted = true;
     initialY = rect.y;
     velocityY = 0;
 }
 
-void Bird::render(SDL_Renderer *ren)
+void Bird::render(SDL_Renderer *renderer)
 {
     if (!isActive)
         return;
-    SDL_Texture *currentTexture = frameTextures[currentFrame];
+    SDL_Texture *currentTexture = textures[curentframe];
     if (!currentTexture)
         return;
     SDL_Rect destRect = rect;
     SDL_Point center = {rect.w / 2, rect.h / 2};
-    SDL_RenderCopyEx(ren, currentTexture, nullptr, &destRect, rotation, &center, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, currentTexture, nullptr, &destRect, rotation, &center, SDL_FLIP_NONE);
 }
 
 void Bird::die()
 {
-    if (!isDead)
+    if (!dead)
     {
-        isDead = true;
-        if (hitSound)
-            Mix_PlayChannel(-1, hitSound, 0);
+        dead = true;
+        if (hitsound)
+            Mix_PlayChannel(-1, hitsound, 0);
     }
 }
 
@@ -155,12 +156,12 @@ void Bird::handleCollision(Sprite *other)
 }
 void Bird::flap()
 {
-    if (!isDead)
+    if (!dead)
     {
         velocityY = -400.0f;
-        if (flapSound)
-            Mix_PlayChannel(-1, flapSound, 0);
+        if (flaxsound)
+            Mix_PlayChannel(-1, flaxsound, 0);
         rotation = -20.0f;
-        targetRotation = -30.0f;
+        targetrotation = -30.0f;
     }
 }

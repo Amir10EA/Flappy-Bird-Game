@@ -9,28 +9,28 @@ class GameOverScreen
 {
 private:
     TTF_Font *font;
-    SDL_Texture *scoreTexture;
-    SDL_Texture *bestScoreTexture;
-    SDL_Texture *restartTexture;
-    SDL_Rect gameOverRect;
+    SDL_Texture *scoretexture;
+    SDL_Texture *bestscoretexture;
+    SDL_Texture *restarttexture;
+    SDL_Rect gameoverRect;
     SDL_Rect scoreRect;
     SDL_Rect levelRect;
-    SDL_Rect bestScoreRect;
+    SDL_Rect bestscoreRect;
     SDL_Rect buttonRect;
-    int currentScore;
-    int bestScore;
-    float buttonPulse;
+    int curentscore;
+    int bestscore;
+    //float buttonPulse;
 
 public:
     void setBestScore(int score);
-    GameOverScreen(SDL_Renderer *ren, TTF_Font *gameFont);
+    GameOverScreen(SDL_Renderer *renderer, TTF_Font *font);
     ~GameOverScreen();
     void update(int score);
-    void render(SDL_Renderer *ren);
-    bool isRestartButtonClicked(int x, int y) const;
+    void render(SDL_Renderer *renderer);
+    bool isRestartButtonClicked(int xcor, int ycor) const;
 
 private:
-    void renderText(SDL_Renderer *ren, const std::string &text, SDL_Rect &rect, SDL_Color &color);
-    void renderPanel(SDL_Renderer *ren);
+    void renderText(SDL_Renderer *renderer, const std::string &text, SDL_Rect &rect, SDL_Color &colour);
+    void renderPanel(SDL_Renderer *renderer);
 };
 #endif

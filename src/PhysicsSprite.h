@@ -10,13 +10,13 @@ protected:
     float gravityScale;
     float elasticity;
     bool affectedByGravity;
-    PhysicsSprite(SDL_Renderer *ren, const std::string &path, int x, int y, int w, int h);
+    PhysicsSprite(SDL_Renderer *renderer, const std::string &path, int xcor, int ycor, int width, int height);
 
 public:
-    void update(float deltaTime) override;
-    void applyForce(float fx, float fy);
-    void setVelocity(float vx, float vy);
-    void setGravityScale(float scale) { gravityScale = scale; }
-    void setElasticity(float e) { elasticity = e; }
+    void update(float time) override;
+    void applyForce(float forcex, float forcey);
+    void setVelocity(float velx, float vely);
+    void setGravityScale(float gscale) { gravityScale = gscale; }
+    void setElasticity(float elast) { elasticity = elast; }
 };
 #endif

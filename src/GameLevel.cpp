@@ -3,41 +3,41 @@
 #include <iostream>
 using namespace std;
 
-GameLevel::GameLevel(SDL_Renderer *ren)
+GameLevel::GameLevel(SDL_Renderer *renderer)
     : score(0),
       bestScore(0),
       difficulty(1.0f),
-      currentLevel(1),
-      levelUpThreshold(10),
-      renderer(ren),
-      backgroundOffset(0),
-      gameStarted(false),
-      levelUpSound(nullptr)
+      curentlevel(1),
+      levelupthreshold(10),
+      renderer(renderer),
+      backgroundoffset(0),
+      started(false),
+      levelupsound(nullptr)
 {
-    levelUpSound = Mix_LoadWAV("resources/sounds/level-up.wav");
-    if (!levelUpSound)
+    levelupsound = Mix_LoadWAV("resources/sounds/level-up.wav");
+    if (!levelupsound)
     {
-        std::cerr << "Failed to load level up sound: " << Mix_GetError() << std::endl;
+        std::cerr << Mix_GetError() << std::endl;
     }
 
     SDL_Surface *bgSurface = IMG_Load("resources/images/flappy-bird-background.jpg");
     if (bgSurface)
     {
-        backgroundTexture = SDL_CreateTextureFromSurface(ren, bgSurface);
+        backgroundtexture = SDL_CreateTextureFromSurface(renderer, bgSurface);
         SDL_FreeSurface(bgSurface);
     }
     else
     {
-        std::cerr << "Failed to load background image: " << IMG_GetError() << std::endl;
-        backgroundTexture = nullptr;
+        std::cerr << IMG_GetError() << std::endl;
+        backgroundtexture = nullptr;
     }
-    bird = new Bird(ren, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 2);
+    bird = new Bird(renderer, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 2);
     sprites.push_back(std::unique_ptr<Sprite>(bird));
     for (int i = 0; i < 3; ++i)
     {
         int x = WINDOW_WIDTH + (i * PIPE_SPACING);
-        Pipe *topPipe = new Pipe(ren, "resources/images/pipe.png", x, 0, true);
-        Pipe *bottomPipe = new Pipe(ren, "resources/images/pipe.png", x, 0, false);
+        Pipe *topPipe = new Pipe(renderer, "resources/images/pipe.png", x, 0, true);
+        Pipe *bottomPipe = new Pipe(renderer, "resources/images/pipe.png", x, 0, false);
         pipes.push_back(topPipe);
         pipes.push_back(bottomPipe);
         sprites.push_back(std::unique_ptr<Sprite>(topPipe));
@@ -46,12 +46,12 @@ GameLevel::GameLevel(SDL_Renderer *ren)
     font = TTF_OpenFont("resources/fonts/PressStart2P.ttf", 28);
     if (!font)
     {
-        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
+        std::cerr << TTF_GetError() << std::endl;
         return;
     }
-    scoreTexture = nullptr;
-    levelTexture = nullptr;
-    gameOverScreen = std::make_unique<GameOverScreen>(ren, font);
+    scoretexture = nullptr;
+    leveltexture = nullptr;
+    gameoverscreen = std::make_unique<GameOverScreen>(renderer, font);
     updateScoreTexture(renderer);
     updateLevelTexture(renderer);
     loadBestScore();
@@ -59,17 +59,17 @@ GameLevel::GameLevel(SDL_Renderer *ren)
 
 GameLevel::~GameLevel()
 {
-    if (levelUpSound)
+    if (levelupsound)
     {
-        Mix_FreeChunk(levelUpSound);
+        Mix_FreeChunk(levelupsound);
     }
-    if (backgroundTexture)
+    if (backgroundtexture)
     {
-        SDL_DestroyTexture(backgroundTexture);
+        SDL_DestroyTexture(backgroundtexture);
     }
-    if (scoreTexture)
+    if (scoretexture)
     {
-        SDL_DestroyTexture(scoreTexture);
+        SDL_DestroyTexture(scoretexture);
     }
     if (font)
     {
@@ -77,22 +77,22 @@ GameLevel::~GameLevel()
     }
 }
 
-void GameLevel::update(float deltaTime)
+void GameLevel::update(float time)
 {
     if (!bird->isDying())
     {
-        if (gameStarted)
+        if (started)
         {
-            backgroundOffset += BACKGROUND_SCROLL_SPEED;
-            if (backgroundOffset >= 767)
+            backgroundoffset += BACKGROUND_SCROLL_SPEED;
+            if (backgroundoffset >= 767)
             {
-                backgroundOffset = 0;
+                backgroundoffset = 0;
             }
             for (auto &sprite : sprites)
             {
                 if (dynamic_cast<Pipe *>(sprite.get()))
                 {
-                    sprite->update(deltaTime);
+                    sprite->update(time);
                 }
             }
             for (auto &sprite : sprites)
@@ -104,22 +104,22 @@ void GameLevel::update(float deltaTime)
             }
             for (size_t i = 0; i < pipes.size(); i += 2)
             {
-                float pipeRightEdge = pipes[i]->getRect().x + PIPE_WIDTH;
-                float birdCenterX = bird->getRect().x + (bird->getRect().w / 2);
-                if (pipeRightEdge <= birdCenterX &&
-                    pipeRightEdge > birdCenterX - (INITIAL_SCROLL_SPEED * difficulty))
+                float rightedge = pipes[i]->getRect().x + PIPE_WIDTH;
+                float centerofbird = bird->getRect().x + (bird->getRect().w / 2);
+                if (rightedge <= centerofbird &&
+                    rightedge > centerofbird - (INITIAL_SCROLL_SPEED * difficulty))
                 {
                     score++;
                     updateScoreTexture(renderer);
-                    int newLevel = (score / static_cast<int>(levelUpThreshold)) + 1;
-                    if (newLevel != currentLevel)
+                    int newlevel = (score / static_cast<int>(levelupthreshold)) + 1;
+                    if (newlevel != curentlevel)
                     {
-                        currentLevel = newLevel;
-                        difficulty = 1.0f + (currentLevel - 1) * 0.2f;
+                        curentlevel = newlevel;
+                        difficulty = 1.0f + (curentlevel - 1) * 0.2f;
                         updateLevelTexture(renderer);
-                        if (levelUpSound)
+                        if (levelupsound)
                         {
-                            Mix_PlayChannel(-1, levelUpSound, 0);
+                            Mix_PlayChannel(-1, levelupsound, 0);
                         }
                         for (auto pipe : pipes)
                         {
@@ -129,7 +129,7 @@ void GameLevel::update(float deltaTime)
                 }
             }
         }
-        bird->update(deltaTime, gameStarted);
+        bird->update(time, started);
     }
     else
     {
@@ -137,47 +137,47 @@ void GameLevel::update(float deltaTime)
     }
 }
 
-void GameLevel::render(SDL_Renderer *ren)
+void GameLevel::render(SDL_Renderer *renderer)
 {
-    if (backgroundTexture)
+    if (backgroundtexture)
     {
         SDL_Rect srcRect = {
-            static_cast<int>(backgroundOffset), 0,
+            static_cast<int>(backgroundoffset), 0,
             WINDOW_WIDTH, WINDOW_HEIGHT};
         SDL_Rect destRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-        SDL_RenderCopy(ren, backgroundTexture, &srcRect, &destRect);
+        SDL_RenderCopy(renderer, backgroundtexture, &srcRect, &destRect);
     }
     for (auto &sprite : sprites)
     {
-        sprite->render(ren);
+        sprite->render(renderer);
     }
     SDL_Rect panelRect = {
         (WINDOW_WIDTH - 240) / 2, 15, 240, 120};
 
-    if (levelTexture)
+    if (leveltexture)
     {
         SDL_Rect levelRect = {
             panelRect.x + (panelRect.w - 150) / 2,
             panelRect.y + 15,
             150,
             40};
-        SDL_RenderCopy(ren, levelTexture, nullptr, &levelRect);
+        SDL_RenderCopy(renderer, leveltexture, nullptr, &levelRect);
     }
 
-    if (scoreTexture)
+    if (scoretexture)
     {
         SDL_Rect scoreRect = {
             panelRect.x + (panelRect.w - 130) / 2,
             panelRect.y + 65,
             130,
             40};
-        SDL_RenderCopy(ren, scoreTexture, nullptr, &scoreRect);
+        SDL_RenderCopy(renderer, scoretexture, nullptr, &scoreRect);
     }
 
     if (bird->isDying())
     {
-        gameOverScreen->update(score);
-        gameOverScreen->render(ren);
+        gameoverscreen->update(score);
+        gameoverscreen->render(renderer);
     }
 }
 void GameLevel::handleInput(const SDL_Event &event)
@@ -188,7 +188,7 @@ void GameLevel::handleInput(const SDL_Event &event)
         {
             int mouseX, mouseY;
             SDL_GetMouseState(&mouseX, &mouseY);
-            if (gameOverScreen->isRestartButtonClicked(mouseX, mouseY))
+            if (gameoverscreen->isRestartButtonClicked(mouseX, mouseY))
             {
                 reset();
             }
@@ -199,9 +199,9 @@ void GameLevel::handleInput(const SDL_Event &event)
         if ((event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) ||
             (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT))
         {
-            if (!gameStarted)
+            if (!started)
             {
-                gameStarted = true;
+                started = true;
                 bird->startGame();
             }
             bird->flap();
@@ -221,9 +221,9 @@ void GameLevel::loadBestScore()
     {
         bestScore = 0;
     }
-    if (gameOverScreen)
+    if (gameoverscreen)
     {
-        gameOverScreen->setBestScore(bestScore);
+        gameoverscreen->setBestScore(bestScore);
     }
 }
 
@@ -238,9 +238,9 @@ void GameLevel::saveBestScore()
             file << bestScore;
             file.close();
         }
-        if (gameOverScreen)
+        if (gameoverscreen)
         {
-            gameOverScreen->setBestScore(bestScore);
+            gameoverscreen->setBestScore(bestScore);
         }
     }
 }
@@ -248,12 +248,12 @@ void GameLevel::saveBestScore()
 void GameLevel::reset()
 {
     score = 0;
-    currentLevel = 1;
+    curentlevel = 1;
     difficulty = 1.0f;
-    gameStarted = false;
+    started = false;
     bird->setPosition(WINDOW_WIDTH / 4, WINDOW_HEIGHT / 2);
     bird->setVelocity(0, 0);
-    bird->resetState();
+    bird->reset();
     for (size_t i = 0; i < pipes.size(); i += 2)
     {
         float spacing = (i / 2) * PIPE_SPACING;
@@ -268,41 +268,41 @@ void GameLevel::reset()
 
 void GameLevel::updateScoreTexture(SDL_Renderer *ren)
 {
-    if (scoreTexture)
+    if (scoretexture)
     {
-        SDL_DestroyTexture(scoreTexture);
-        scoreTexture = nullptr;
+        SDL_DestroyTexture(scoretexture);
+        scoretexture = nullptr;
     }
     SDL_Color textColor = {255, 255, 255, 255};
     std::string scoreText = "   " + std::to_string(score) + "   ";
     SDL_Surface *surface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
     if (!surface)
     {
-        printf("TTF_RenderText_Solid Error: %s\n", TTF_GetError());
+        printf("%s\n", TTF_GetError());
         return;
     }
-    scoreTexture = SDL_CreateTextureFromSurface(ren, surface);
-    if (!scoreTexture)
+    scoretexture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!scoretexture)
     {
-        printf("SDL_CreateTextureFromSurface Error: %s\n", SDL_GetError());
+        printf("%s\n", SDL_GetError());
         SDL_FreeSurface(surface);
         return;
     }
     SDL_FreeSurface(surface);
 }
 
-void GameLevel::updateLevelTexture(SDL_Renderer *ren)
+void GameLevel::updateLevelTexture(SDL_Renderer *renderer)
 {
-    if (levelTexture)
+    if (leveltexture)
     {
-        SDL_DestroyTexture(levelTexture);
+        SDL_DestroyTexture(leveltexture);
     }
-    SDL_Color color = {255, 215, 0, 255};
-    std::string levelText = "Level " + std::to_string(currentLevel);
-    SDL_Surface *surface = TTF_RenderText_Solid(font, levelText.c_str(), color);
+    SDL_Color colour = {255, 215, 0, 255};
+    std::string levelText = "Level " + std::to_string(curentlevel);
+    SDL_Surface *surface = TTF_RenderText_Solid(font, levelText.c_str(), colour);
     if (surface)
     {
-        levelTexture = SDL_CreateTextureFromSurface(ren, surface);
+        leveltexture = SDL_CreateTextureFromSurface(renderer, surface);
         SDL_FreeSurface(surface);
     }
 }

@@ -12,24 +12,24 @@ class Game
 private:
     SDL_Window *window;
     SDL_Renderer *renderer;
-    bool isRunning;
-    std::unique_ptr<GameLevel> currentLevel;
-    float targetFPS;
-    Uint32 lastFrameTime;
-    TTF_Font *menuFont;
-    bool isPaused;
-    bool isMuted;
+    bool running;
+    std::unique_ptr<GameLevel> curentlevel;
+    float fps;
+    Uint32 lastframetime;
+    TTF_Font *font;
+    bool paused;
+    bool muted;
 
 public:
     Game();
     ~Game();
-    bool init();
+    bool initialize();
     void run();
     void handleInput();
     void update();
     void render();
     void cleanup();
-    bool isPauseActive() const { return isPaused; }
+    bool getPaused() const { return paused; }
 };
 
 #endif

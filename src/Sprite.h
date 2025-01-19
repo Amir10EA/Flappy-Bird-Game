@@ -21,7 +21,7 @@ protected:
     bool isCollidable;
     CollisionType collisionType;
     SDL_Surface* surface;
-    Sprite(SDL_Renderer* ren, const std::string& path, int x, int y, int w, int h);
+    Sprite(SDL_Renderer* renderer, const std::string& path, int xcor, int ycor, int width, int height);
 
 private:
     Sprite(const Sprite&) = delete;
@@ -29,8 +29,8 @@ private:
 
 public:
     virtual ~Sprite();
-    virtual void update(float deltaTime) = 0;
-    virtual void render(SDL_Renderer *ren);
+    virtual void update(float time) = 0;
+    virtual void render(SDL_Renderer *renderer);
     virtual void handleCollision(Sprite *other) {}
     bool checkCollision(Sprite *other);
     bool checkPixelCollision(Sprite *other);

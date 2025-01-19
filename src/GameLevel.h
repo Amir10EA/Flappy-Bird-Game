@@ -19,30 +19,30 @@ private:
     std::vector<Pipe *> pipes;
     int score;
     float difficulty;
-    int currentLevel;
+    int curentlevel;
     TTF_Font *font;
-    SDL_Texture *scoreTexture;
-    SDL_Texture *levelTexture;
-    std::unique_ptr<GameOverScreen> gameOverScreen;
-    float levelUpThreshold;
+    SDL_Texture *scoretexture;
+    SDL_Texture *leveltexture;
+    std::unique_ptr<GameOverScreen> gameoverscreen;
+    float levelupthreshold;
     SDL_Renderer *renderer;
-    Mix_Chunk *levelUpSound;
-    SDL_Texture *backgroundTexture;
-    float backgroundOffset;
-    bool gameStarted;
+    Mix_Chunk *levelupsound;
+    SDL_Texture *backgroundtexture;
+    float backgroundoffset;
+    bool started;
     int bestScore;
 
 public:
-    GameLevel(SDL_Renderer *ren);
+    GameLevel(SDL_Renderer *renderer);
     ~GameLevel();
-    void update(float deltaTime);
-    void render(SDL_Renderer *ren);
+    void update(float time);
+    void render(SDL_Renderer *renderer);
     void handleInput(const SDL_Event &event);
     void reset();
     int getScore() const { return score; }
-    int getCurrentLevel() const { return currentLevel; }
-    void updateScoreTexture(SDL_Renderer *ren);
-    void updateLevelTexture(SDL_Renderer *ren);
+    int getCurrentLevel() const { return curentlevel; }
+    void updateScoreTexture(SDL_Renderer *renderer);
+    void updateLevelTexture(SDL_Renderer *renderer);
     bool isGameOver() const { return bird->isDying(); }
 private:
     void loadBestScore();

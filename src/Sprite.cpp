@@ -1,20 +1,20 @@
 #include "Sprite.h"
 #include <iostream>
 
-Sprite::Sprite(SDL_Renderer *ren, const std::string &path, int x, int y, int w, int h)
+Sprite::Sprite(SDL_Renderer* renderer, const std::string& path, int xcor, int ycor, int width, int height)
     : isActive(true), isCollidable(true), collisionType(CollisionType::RECTANGLE), surface(nullptr)
 {
-    rect = {x, y, w, h};
+    rect = {xcor, ycor, width, height};
     surface = IMG_Load(path.c_str());
     if (!surface)
     {
-        std::cerr << "Failed to load image: " << IMG_GetError() << std::endl;
+        std::cerr <<  IMG_GetError() << std::endl;
         return;
     }
-    texture = SDL_CreateTextureFromSurface(ren, surface);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
     if (!texture)
     {
-        std::cerr << "Failed to create texture: " << SDL_GetError() << std::endl;
+        std::cerr << SDL_GetError() << std::endl;
     }
     if (collisionType != CollisionType::PIXEL)
     {
@@ -33,11 +33,11 @@ Sprite::~Sprite()
         SDL_FreeSurface(surface);
     }
 }
-void Sprite::render(SDL_Renderer *ren)
+void Sprite::render(SDL_Renderer *renderer)
 {
     if (isActive && texture)
     {
-        SDL_RenderCopy(ren, texture, nullptr, &rect);
+        SDL_RenderCopy(renderer, texture, nullptr, &rect);
     }
 }
 bool Sprite::checkCollision(Sprite *other)

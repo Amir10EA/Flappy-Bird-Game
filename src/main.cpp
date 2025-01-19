@@ -13,15 +13,15 @@ int main(int argc, char *argv[])
     try
     {
         Game game;
-        if (!game.init())
+        if (!game.initialize())
         {
-            throw std::runtime_error("Failed to initialize game!");
+            throw std::runtime_error("initialization error");
         }
         game.run();
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         return 1;
     }
     return 0;

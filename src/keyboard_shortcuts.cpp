@@ -2,26 +2,26 @@
 #include <SDL2/SDL_mixer.h>
 #include <algorithm>
 
-void togglePause(bool &isPaused)
+void togglePause(bool &paused)
 {
-    isPaused = !isPaused;
+    paused = !paused;
 }
-void toggleMute(bool &isMuted)
+void toggleMute(bool &muted)
 {
-    isMuted = !isMuted;
-    static int previousVolume = MIX_MAX_VOLUME;
-    if (isMuted)
+    muted = !muted;
+    static int previousvolume = MIX_MAX_VOLUME;
+    if (muted)
     {
-        previousVolume = Mix_Volume(-1, -1);
+        previousvolume = Mix_Volume(-1, -1);
         Mix_Volume(-1, 0);
     }
     else
     {
-        Mix_Volume(-1, previousVolume);
+        Mix_Volume(-1, previousvolume);
     }
 }
-void adjustVolume(int delta)
+void adjustVolume(int x)
 {
-    int currentVolume = Mix_Volume(-1, -1);
-    Mix_Volume(-1, std::max(0, std::min(MIX_MAX_VOLUME, currentVolume + delta)));
+    int currentvolume = Mix_Volume(-1, -1);
+    Mix_Volume(-1, std::max(0, std::min(MIX_MAX_VOLUME, currentvolume + x)));
 }

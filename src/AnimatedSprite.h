@@ -8,17 +8,17 @@ class AnimatedSprite : public PhysicsSprite
 {
 protected:
     std::vector<SDL_Rect> frames;
-    int currentFrame;
-    float frameTime;
-    float frameTimer;
-    bool looping;
-    AnimatedSprite(SDL_Renderer *ren, const std::string &path, int x, int y, int w, int h);
+    int curentframe;
+    float frametime;
+    float frametimer;
+    bool loops;
+    AnimatedSprite(SDL_Renderer *renderer, const std::string &path, int xcor, int ycor, int width, int height);
 
 public:
-    void update(float deltaTime) override;
-    void addFrame(const SDL_Rect &frame);
-    void setFrameTime(float time) { frameTime = time; }
-    void setLooping(bool loop) { looping = loop; }
+    void update(float dtime) override;
+    void addframe(const SDL_Rect &frame);
+    void settimeframe(float time) { frametime = time; }
+    void setlooping(bool loop) { loops = loop; }
 };
 
 #endif

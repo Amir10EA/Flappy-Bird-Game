@@ -1,33 +1,33 @@
 #include "Pipe.h"
 
-Pipe::Pipe(SDL_Renderer *ren, const std::string &path, int x, int y, bool isTop)
-    : PhysicsSprite(ren, path, x, y, PIPE_WIDTH, WINDOW_HEIGHT),
-      scrollSpeed(INITIAL_SCROLL_SPEED),
-      isTopPipe(isTop)
+Pipe::Pipe(SDL_Renderer *renderer, const std::string &path, int xcor, int ycor, bool top)
+    : PhysicsSprite(renderer, path, xcor, ycor, PIPE_WIDTH, WINDOW_HEIGHT),
+      scrollspeed(INITIAL_SCROLL_SPEED),
+      toppipe(top)
 {
     affectedByGravity = false;
-    reset(x);
+    reset(xcor);
 }
 
-void Pipe::render(SDL_Renderer *ren)
+void Pipe::render(SDL_Renderer *renderer)
 {
     if (!isActive || !texture)
         return;
 
     SDL_Rect destRect = rect;
-    if (isTopPipe)
+    if (toppipe)
     {
-        SDL_RenderCopyEx(ren, texture, nullptr, &destRect, 180.0, nullptr, SDL_FLIP_NONE);
+        SDL_RenderCopyEx(renderer, texture, nullptr, &destRect, 180.0, nullptr, SDL_FLIP_NONE);
     }
     else
     {
-        SDL_RenderCopy(ren, texture, nullptr, &destRect);
+        SDL_RenderCopy(renderer, texture, nullptr, &destRect);
     }
 }
 
-void Pipe::update(float deltaTime)
+void Pipe::update(float time)
 {
-    rect.x -= static_cast<int>(scrollSpeed);
+    rect.x -= static_cast<int>(scrollspeed);
     if (rect.x + rect.w < 0)
     {
         reset(rect.x + (3 * PIPE_SPACING));
@@ -38,19 +38,19 @@ void Pipe::reset(int x)
 {
     rect.x = x;
     int gapSize = PIPE_GAP;
-    int totalPlayableHeight = WINDOW_HEIGHT - GROUND_HEIGHT;
-    int minGapY = static_cast<int>(totalPlayableHeight * 0.2);
-    int maxGapY = static_cast<int>(totalPlayableHeight * 0.8);
-    int availableRange = maxGapY - minGapY - gapSize;
-    int gapStart = minGapY + (rand() % availableRange);
-    if (isTopPipe)
+    int maxheight = WINDOW_HEIGHT - GROUND_HEIGHT;
+    int mingapY = static_cast<int>(maxheight * 0.2);
+    int maxgapY = static_cast<int>(maxheight * 0.8);
+    int availableRange = maxgapY - mingapY - gapSize;
+    int startgap = mingapY + (rand() % availableRange);
+    if (toppipe)
     {
         rect.y = 0;
-        rect.h = gapStart;
+        rect.h = startgap;
     }
     else
     {
-        rect.y = gapStart + gapSize;
+        rect.y = startgap + gapSize;
         rect.h = (WINDOW_HEIGHT - GROUND_HEIGHT) - rect.y;
     }
 }

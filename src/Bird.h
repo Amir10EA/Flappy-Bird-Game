@@ -10,37 +10,33 @@
 class Bird : public AnimatedSprite
 {
 private:
-    float flapForce;
-    bool isDead;
-    Mix_Chunk *flapSound;
-    Mix_Chunk *hitSound;
+    float flappower;
+    bool dead;
+    Mix_Chunk *flaxsound;
+    Mix_Chunk *hitsound;
     float rotation;
-    float targetRotation;
-    float rotationSpeed;
-    float downwardRotationSpeed;
-    std::vector<SDL_Texture *> frameTextures;
-    bool isGameStarted;
+    float targetrotation;
+    float speedrotation;
+    float rotationdown;
+    std::vector<SDL_Texture *> textures;
+    bool gamestarted;
     float initialY;
-    float hoverOffset;
-    float hoverSpeed;
+    float offset;
+    float hoverspeed;
 
 public:
-    Bird(SDL_Renderer *ren, int x, int y);
+    Bird(SDL_Renderer *renderer, int xcor, int ycor);
     ~Bird();
-    void render(SDL_Renderer *ren) override;
+    void render(SDL_Renderer *renderer) override;
     void handleCollision(Sprite *other) override;
     void flap();
-    bool isDying() const { return isDead; }
-    void resetState()
-    {
-        isDead = false;
-        velocityY = 0;
-    }
+    bool isDying() const { return dead; }
+    void reset();
     void die();
     Bird(const Bird &) = delete;
     Bird &operator=(const Bird &) = delete;
     void startGame();
-    void update(float deltaTime, bool gameStarted);
+    void update(float dTime, bool gameStarted);
 };
 
 #endif

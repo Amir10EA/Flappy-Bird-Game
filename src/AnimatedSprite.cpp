@@ -1,38 +1,38 @@
 #include "AnimatedSprite.h"
-AnimatedSprite::AnimatedSprite(SDL_Renderer *ren, const std::string &path, int x, int y, int w, int h)
-    : PhysicsSprite(ren, path, x, y, w, h),
-      currentFrame(0),
-      frameTime(0.1f),
-      frameTimer(0),
-      looping(true)
+AnimatedSprite::AnimatedSprite(SDL_Renderer *render, const std::string &path, int xcor, int ycor, int width, int height)
+    : PhysicsSprite(render, path, xcor, ycor, width, height),
+      curentframe(0),
+      frametime(0.1f),
+      frametimer(0),
+      loops(true)
 {
 }
-void AnimatedSprite::update(float deltaTime)
+void AnimatedSprite::update(float dtime)
 {
-    PhysicsSprite::update(deltaTime);
+    PhysicsSprite::update(dtime);
 
     if (!frames.empty())
     {
-        frameTimer += deltaTime;
-        if (frameTimer >= frameTime)
+        frametimer += dtime;
+        if (frametimer >= frametime)
         {
-            frameTimer = 0;
-            currentFrame++;
-            if (currentFrame >= static_cast<int>(frames.size()))
+            frametimer = 0;
+            curentframe++;
+            if (curentframe >= static_cast<int>(frames.size()))
             {
-                if (looping)
+                if (loops)
                 {
-                    currentFrame = 0;
+                    curentframe = 0;
                 }
                 else
                 {
-                    currentFrame = static_cast<int>(frames.size()) - 1;
+                    curentframe = static_cast<int>(frames.size()) - 1;
                 }
             }
         }
     }
 }
-void AnimatedSprite::addFrame(const SDL_Rect &frame)
+void AnimatedSprite::addframe(const SDL_Rect &frame)
 {
     frames.push_back(frame);
 }
